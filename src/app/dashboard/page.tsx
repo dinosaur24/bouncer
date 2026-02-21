@@ -1,6 +1,13 @@
 "use client";
 
-import { TrendingUp } from "lucide-react";
+import { useState } from "react";
+import Link from "next/link";
+import { TrendingUp, Mail, Phone, Globe, Building2, Download } from "lucide-react";
+import { useToast } from "@/components/Toast";
+import {
+  ValidationDrawer,
+  type ValidationDetail,
+} from "@/components/ValidationDrawer";
 
 const metrics = [
   {
@@ -82,7 +89,121 @@ const recentValidations = [
   },
 ];
 
+const validationDetails: Record<string, ValidationDetail> = {
+  "sarah@techcorp.io": {
+    email: "sarah@techcorp.io",
+    status: "Passed",
+    score: 92,
+    source: "Contact Form",
+    time: "2 min ago",
+    ip: "192.168.1.42",
+    phone: "+1 (555) 234-5678",
+    company: "TechCorp Inc.",
+    signals: [
+      { name: "Email", icon: Mail, status: "pass", label: "Valid business email", detail: "Corporate domain verified" },
+      { name: "Phone", icon: Phone, status: "pass", label: "Valid US mobile", detail: "Number format confirmed" },
+      { name: "IP", icon: Globe, status: "pass", label: "Clean residential IP", detail: "No suspicious activity" },
+      { name: "Domain", icon: Building2, status: "pass", label: "Established company domain", detail: "Domain registered 8+ years" },
+    ],
+  },
+  "j.miller@startup.co": {
+    email: "j.miller@startup.co",
+    status: "Borderline",
+    score: 54,
+    source: "API",
+    time: "5 min ago",
+    ip: "10.0.0.88",
+    phone: "+1 (555) 876-5432",
+    company: "Startup Co.",
+    signals: [
+      { name: "Email", icon: Mail, status: "warn", label: "Recently registered domain", detail: "Domain created within last year" },
+      { name: "Phone", icon: Phone, status: "pass", label: "Valid number", detail: "Number format confirmed" },
+      { name: "IP", icon: Globe, status: "warn", label: "VPN detected", detail: "Connection routed through VPN" },
+      { name: "Domain", icon: Building2, status: "warn", label: "Domain age < 6 months", detail: "New domain registration" },
+    ],
+  },
+  "test123@mailinator.com": {
+    email: "test123@mailinator.com",
+    status: "Rejected",
+    score: 18,
+    source: "Newsletter",
+    time: "8 min ago",
+    ip: "203.0.113.42",
+    phone: "+44 000 000",
+    company: "Unknown",
+    signals: [
+      { name: "Email", icon: Mail, status: "fail", label: "Disposable email provider", detail: "Known throwaway domain" },
+      { name: "Phone", icon: Phone, status: "fail", label: "Invalid number format", detail: "Number does not match any region" },
+      { name: "IP", icon: Globe, status: "fail", label: "Known spam IP", detail: "Listed on multiple blocklists" },
+      { name: "Domain", icon: Building2, status: "fail", label: "Blacklisted domain", detail: "Domain flagged for abuse" },
+    ],
+  },
+  "anna.chen@enterprise.com": {
+    email: "anna.chen@enterprise.com",
+    status: "Passed",
+    score: 87,
+    source: "Demo Request",
+    time: "12 min ago",
+    ip: "172.16.0.5",
+    phone: "+1 (555) 345-6789",
+    company: "Enterprise Inc.",
+    signals: [
+      { name: "Email", icon: Mail, status: "pass", label: "Valid corporate email", detail: "Enterprise email domain" },
+      { name: "Phone", icon: Phone, status: "pass", label: "Valid number", detail: "Number format confirmed" },
+      { name: "IP", icon: Globe, status: "pass", label: "Enterprise IP range", detail: "Corporate network detected" },
+      { name: "Domain", icon: Building2, status: "pass", label: "Fortune 500 company", detail: "Top-tier enterprise domain" },
+    ],
+  },
+  "mark@agency.io": {
+    email: "mark@agency.io",
+    status: "Passed",
+    score: 78,
+    source: "Contact Form",
+    time: "15 min ago",
+    ip: "192.168.2.10",
+    phone: "+1 (555) 987-6543",
+    company: "Agency.io",
+    signals: [
+      { name: "Email", icon: Mail, status: "pass", label: "Valid email", detail: "Email format verified" },
+      { name: "Phone", icon: Phone, status: "pass", label: "Valid mobile", detail: "Mobile number confirmed" },
+      { name: "IP", icon: Globe, status: "warn", label: "Shared office IP", detail: "Multiple users on same IP" },
+      { name: "Domain", icon: Building2, status: "pass", label: "Verified agency", detail: "Established agency domain" },
+    ],
+  },
+};
+
 export default function DashboardPage() {
+  const { addToast } = useToast();
+  const [activeDateRange, setActiveDateRange] = useState("Last 30 days");
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedValidation, setSelectedValidation] =
+    useState<ValidationDetail | null>(null);
+
+  const dateRanges = ["Last 30 days", "Last 7 days", "Custom"];
+
+  const handleOverride = (email: string) => {
+    addToast("Lead override accepted — syncing to CRM");
+    setDrawerOpen(false);
+  };
+
+  const handleExport = () => {
+    const headers = ["Email", "Score", "Meta"];
+    const rows = recentValidations.map((v) =>
+      [v.email, v.score, v.meta].join(",")
+    );
+    const csv = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "validations.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    addToast("Validation data exported");
+  };
+
   return (
     <>
       {/* Page Header */}
@@ -99,26 +220,37 @@ export default function DashboardPage() {
         <div className="flex items-center gap-3">
           {/* Date picker */}
           <div className="flex items-center">
-            <button className="bg-dark text-white font-heading text-[13px] font-medium px-4 py-2.5 cursor-pointer">
-              Last 30 days
-            </button>
-            <button className="border border-border font-heading text-[13px] font-medium px-4 py-2.5 text-dark cursor-pointer bg-white">
-              Last 7 days
-            </button>
-            <button className="border border-border border-l-0 font-heading text-[13px] font-medium px-4 py-2.5 text-dark cursor-pointer bg-white">
-              Custom
-            </button>
+            {dateRanges.map((range) => (
+              <button
+                key={range}
+                onClick={() => setActiveDateRange(range)}
+                className={`font-heading text-[13px] font-medium px-4 py-2.5 cursor-pointer ${
+                  activeDateRange === range
+                    ? "bg-dark text-white"
+                    : "border border-border text-dark bg-white"
+                }`}
+              >
+                {range}
+              </button>
+            ))}
           </div>
 
           {/* Export button */}
-          <button className="border border-border font-heading text-[13px] font-medium px-4 py-2.5 text-dark cursor-pointer bg-white hover:bg-surface transition-colors">
+          <button
+            onClick={handleExport}
+            className="border border-border font-heading text-[13px] font-medium px-4 py-2.5 text-dark cursor-pointer bg-white hover:bg-surface transition-colors flex items-center gap-2"
+          >
+            <Download size={14} />
             Export
           </button>
 
           {/* Add source button */}
-          <button className="bg-dark text-white font-heading text-[13px] font-medium px-4 py-2.5 cursor-pointer hover:bg-dark/90 transition-colors">
+          <Link
+            href="/dashboard/sources"
+            className="bg-dark text-white font-heading text-[13px] font-medium px-4 py-2.5 cursor-pointer hover:bg-dark/90 transition-colors"
+          >
             Add source
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -227,12 +359,12 @@ export default function DashboardPage() {
             <h2 className="font-heading text-lg font-semibold">
               Recent Validations
             </h2>
-            <a
-              href="#"
+            <Link
+              href="/dashboard/validations"
               className="text-[13px] font-medium text-brand hover:underline"
             >
               View All &rarr;
-            </a>
+            </Link>
           </div>
 
           {/* Validation rows */}
@@ -240,7 +372,11 @@ export default function DashboardPage() {
             {recentValidations.map((item) => (
               <div
                 key={item.email}
-                className="flex items-center justify-between"
+                onClick={() => {
+                  setSelectedValidation(validationDetails[item.email]);
+                  setDrawerOpen(true);
+                }}
+                className="flex items-center justify-between cursor-pointer hover:bg-surface transition-colors p-2 -mx-2 rounded-sm"
               >
                 <div className="flex items-center gap-3">
                   <div
@@ -268,6 +404,13 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      <ValidationDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        validation={selectedValidation}
+        onOverride={handleOverride}
+      />
     </>
   );
 }

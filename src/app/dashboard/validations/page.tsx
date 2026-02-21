@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { Search } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Search, Mail, Phone, Globe, Building2, Download, Filter } from "lucide-react";
+import { useToast } from "@/components/Toast";
+import { ValidationDrawer, type ValidationDetail } from "@/components/ValidationDrawer";
 
 const dateRanges = ["Last 30 days", "Last 7 days", "Custom"] as const;
 type DateRange = (typeof dateRanges)[number];
@@ -76,6 +78,212 @@ const validations: Validation[] = [
   },
 ];
 
+const validationDetails: Record<string, ValidationDetail> = {
+  "sarah@techcorp.io": {
+    email: "sarah@techcorp.io",
+    status: "Passed",
+    score: 92,
+    source: "Contact Form",
+    time: "2 min ago",
+    ip: "192.168.1.42",
+    phone: "+1 555-234-5678",
+    company: "TechCorp Inc",
+    signals: [
+      {
+        name: "Email Verification",
+        icon: Mail,
+        status: "pass",
+        label: "Valid corporate email",
+        detail: "MX records verified, mailbox exists on techcorp.io",
+      },
+      {
+        name: "Phone Verification",
+        icon: Phone,
+        status: "pass",
+        label: "Valid phone number",
+        detail: "US mobile number, carrier verified",
+      },
+    ],
+  },
+  "j.miller@startup.co": {
+    email: "j.miller@startup.co",
+    status: "Borderline",
+    score: 54,
+    source: "API",
+    time: "5 min ago",
+    ip: "10.0.0.88",
+    phone: "+1 555-876-5432",
+    company: "Startup Co",
+    signals: [
+      {
+        name: "Email Verification",
+        icon: Mail,
+        status: "warn",
+        label: "New domain detected",
+        detail: "Domain startup.co registered 3 months ago, limited history",
+      },
+    ],
+  },
+  "test123@mailinator.com": {
+    email: "test123@mailinator.com",
+    status: "Rejected",
+    score: 18,
+    source: "Newsletter",
+    time: "8 min ago",
+    ip: "203.0.113.42",
+    phone: "+44 000 000",
+    company: "Unknown",
+    signals: [
+      {
+        name: "Email Verification",
+        icon: Mail,
+        status: "fail",
+        label: "Disposable email provider",
+        detail: "mailinator.com is a known disposable email service",
+      },
+      {
+        name: "Phone Verification",
+        icon: Phone,
+        status: "fail",
+        label: "Invalid phone number",
+        detail: "Number format invalid, does not match any known carrier",
+      },
+      {
+        name: "IP Analysis",
+        icon: Globe,
+        status: "fail",
+        label: "Spam IP detected",
+        detail: "IP 203.0.113.42 found on 3 blacklists",
+      },
+      {
+        name: "Domain Check",
+        icon: Building2,
+        status: "fail",
+        label: "Blacklisted domain",
+        detail: "mailinator.com is on the global disposable domain blacklist",
+      },
+    ],
+  },
+  "anna.chen@enterprise.com": {
+    email: "anna.chen@enterprise.com",
+    status: "Passed",
+    score: 87,
+    source: "Demo Request",
+    time: "12 min ago",
+    ip: "172.16.0.5",
+    phone: "+1 555-345-6789",
+    company: "Enterprise Inc",
+    signals: [
+      {
+        name: "Email Verification",
+        icon: Mail,
+        status: "pass",
+        label: "Valid corporate email",
+        detail: "MX records verified, mailbox exists on enterprise.com",
+      },
+      {
+        name: "IP Analysis",
+        icon: Globe,
+        status: "pass",
+        label: "Clean IP address",
+        detail: "IP 172.16.0.5 has no blacklist entries, corporate range",
+      },
+    ],
+  },
+  "mark@agency.io": {
+    email: "mark@agency.io",
+    status: "Passed",
+    score: 78,
+    source: "Contact Form",
+    time: "15 min ago",
+    ip: "192.168.2.10",
+    phone: "+1 555-987-6543",
+    company: "Agency.io",
+    signals: [
+      {
+        name: "Phone Verification",
+        icon: Phone,
+        status: "pass",
+        label: "Valid phone number",
+        detail: "US mobile number, carrier verified",
+      },
+      {
+        name: "Domain Check",
+        icon: Building2,
+        status: "pass",
+        label: "Established domain",
+        detail: "agency.io registered 4 years ago, good reputation",
+      },
+    ],
+  },
+  "info@spambot.xyz": {
+    email: "info@spambot.xyz",
+    status: "Rejected",
+    score: 8,
+    source: "API",
+    time: "22 min ago",
+    ip: "45.33.32.156",
+    phone: "N/A",
+    company: "SpamBot Ltd",
+    signals: [
+      {
+        name: "Email Verification",
+        icon: Mail,
+        status: "fail",
+        label: "Suspicious email pattern",
+        detail: "Generic info@ address on known spam domain",
+      },
+      {
+        name: "IP Analysis",
+        icon: Globe,
+        status: "fail",
+        label: "Malicious IP detected",
+        detail: "IP 45.33.32.156 flagged on 7 blacklists, known bot traffic",
+      },
+      {
+        name: "Domain Check",
+        icon: Building2,
+        status: "fail",
+        label: "Spam domain",
+        detail: "spambot.xyz flagged as spam, .xyz TLD with no legitimate history",
+      },
+    ],
+  },
+  "hello@designstudio.com": {
+    email: "hello@designstudio.com",
+    status: "Passed",
+    score: 91,
+    source: "Webinar",
+    time: "34 min ago",
+    ip: "192.168.5.20",
+    phone: "+1 555-111-2222",
+    company: "Design Studio",
+    signals: [
+      {
+        name: "Email Verification",
+        icon: Mail,
+        status: "pass",
+        label: "Valid corporate email",
+        detail: "MX records verified, mailbox exists on designstudio.com",
+      },
+      {
+        name: "Phone Verification",
+        icon: Phone,
+        status: "pass",
+        label: "Valid phone number",
+        detail: "US landline number, business line verified",
+      },
+      {
+        name: "Domain Check",
+        icon: Building2,
+        status: "pass",
+        label: "Established domain",
+        detail: "designstudio.com registered 8 years ago, excellent reputation",
+      },
+    ],
+  },
+};
+
 const statusStyles: Record<
   Status,
   { bg: string; text: string; scoreColor: string }
@@ -106,10 +314,81 @@ const columns = [
   { label: "Time", width: "flex-1" },
 ];
 
+const statusOptions: (Status | "All")[] = ["All", "Passed", "Borderline", "Rejected"];
+
 export default function ValidationsPage() {
   const [activeDateRange, setActiveDateRange] =
     useState<DateRange>("Last 30 days");
   const [activePage, setActivePage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<Status | "All">("All");
+  const [showFilters, setShowFilters] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedValidation, setSelectedValidation] =
+    useState<ValidationDetail | null>(null);
+  const { addToast } = useToast();
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  // Close filter dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setShowFilters(false);
+      }
+    }
+    if (showFilters) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showFilters]);
+
+  const filtered = validations
+    .filter(
+      (v) =>
+        v.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        v.source.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .filter((v) => statusFilter === "All" || v.status === statusFilter);
+
+  const handleRowClick = (email: string) => {
+    const detail = validationDetails[email];
+    if (detail) {
+      setSelectedValidation(detail);
+      setDrawerOpen(true);
+    }
+  };
+
+  const handleOverride = (email: string) => {
+    addToast("Lead override accepted \u2014 syncing to CRM", "success");
+    setDrawerOpen(false);
+    setSelectedValidation(null);
+  };
+
+  const handleExport = () => {
+    const headers = ["Email", "Status", "Score", "Signals", "Source", "Time"];
+    const csvRows = [
+      headers.join(","),
+      ...validations.map((v) =>
+        [
+          `"${v.email}"`,
+          v.status,
+          v.score,
+          `"${v.signals}"`,
+          `"${v.source}"`,
+          `"${v.time}"`,
+        ].join(",")
+      ),
+    ];
+    const csvContent = csvRows.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "validations.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+    addToast("Validation data exported", "success");
+  };
 
   return (
     <>
@@ -150,17 +429,59 @@ export default function ValidationsPage() {
             <input
               type="text"
               placeholder="Search by email, domain..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="text-xs text-dark placeholder:text-gray outline-none bg-transparent w-full"
             />
           </div>
 
           {/* Filters button */}
-          <button className="border border-border px-4 py-2.5 text-xs font-medium text-dark cursor-pointer hover:bg-surface transition-colors">
-            Filters
-          </button>
+          <div className="relative" ref={filterRef}>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-2 border border-border px-4 py-2.5 text-xs font-medium cursor-pointer transition-colors ${
+                statusFilter !== "All"
+                  ? "bg-dark text-white"
+                  : "text-dark hover:bg-surface"
+              }`}
+            >
+              <Filter size={12} />
+              Filters
+              {statusFilter !== "All" && (
+                <span className="bg-white/20 px-1.5 py-0.5 text-[10px] rounded-sm">
+                  {statusFilter}
+                </span>
+              )}
+            </button>
+            {showFilters && (
+              <div className="absolute top-full right-0 mt-1 bg-white border border-border shadow-lg z-40 min-w-[160px]">
+                {statusOptions.map((option) => (
+                  <button
+                    key={option}
+                    onClick={() => {
+                      setStatusFilter(option);
+                      setShowFilters(false);
+                      setActivePage(1);
+                    }}
+                    className={`w-full text-left px-4 py-2.5 text-xs font-medium cursor-pointer transition-colors ${
+                      statusFilter === option
+                        ? "bg-dark text-white"
+                        : "text-dark hover:bg-surface"
+                    }`}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Export button */}
-          <button className="border border-border px-4 py-2.5 text-xs font-medium text-dark cursor-pointer hover:bg-surface transition-colors">
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-2 border border-border px-4 py-2.5 text-xs font-medium text-dark cursor-pointer hover:bg-surface transition-colors"
+          >
+            <Download size={12} />
             Export
           </button>
         </div>
@@ -180,12 +501,13 @@ export default function ValidationsPage() {
         </div>
 
         {/* Table Rows */}
-        {validations.map((row) => {
+        {filtered.map((row) => {
           const style = statusStyles[row.status];
           return (
             <div
               key={row.email}
-              className="flex items-center px-5 py-3.5 border-b border-border"
+              onClick={() => handleRowClick(row.email)}
+              className="flex items-center px-5 py-3.5 border-b border-border cursor-pointer hover:bg-surface transition-colors"
             >
               {/* Email */}
               <div className="w-[260px]">
@@ -230,10 +552,19 @@ export default function ValidationsPage() {
           );
         })}
 
+        {/* Empty state */}
+        {filtered.length === 0 && (
+          <div className="flex items-center justify-center px-5 py-12">
+            <span className="text-sm text-gray">
+              No validations match your filters
+            </span>
+          </div>
+        )}
+
         {/* Pagination */}
         <div className="flex items-center justify-between px-5 py-3">
           <span className="text-xs text-[#999999]">
-            Showing 1&ndash;7 of 1,247 results
+            Showing 1&ndash;{filtered.length} of {filtered.length} results
           </span>
 
           <div className="flex items-center gap-1">
@@ -253,6 +584,17 @@ export default function ValidationsPage() {
           </div>
         </div>
       </div>
+
+      {/* Validation Detail Drawer */}
+      <ValidationDrawer
+        open={drawerOpen}
+        onClose={() => {
+          setDrawerOpen(false);
+          setSelectedValidation(null);
+        }}
+        validation={selectedValidation}
+        onOverride={handleOverride}
+      />
     </>
   );
 }

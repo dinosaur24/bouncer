@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { HelpCircle } from "lucide-react";
+import { ToastProvider } from "@/components/Toast";
 
 const navItems = [
   { label: "Overview", href: "/dashboard" },
@@ -21,6 +22,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   return (
+    <ToastProvider>
     <div className="flex h-screen bg-white max-w-[1440px] mx-auto">
       {/* Sidebar */}
       <aside className="w-60 shrink-0 border-r border-border flex flex-col justify-between p-8">
@@ -106,5 +108,6 @@ export default function DashboardLayout({
         {children}
       </main>
     </div>
+    </ToastProvider>
   );
 }

@@ -1,6 +1,27 @@
 "use client";
 
-const integrations = [
+import { useState } from "react";
+import { ArrowRight } from "lucide-react";
+import { useToast } from "@/components/Toast";
+import { Modal } from "@/components/Modal";
+
+interface IntegrationItem {
+  name: string;
+  iconBg: string;
+  iconText: string;
+  iconTextColor: string;
+  description: string;
+  connected: boolean | null;
+  statusText: string | null;
+  footerLink: string | null;
+}
+
+interface IntegrationCategory {
+  category: string;
+  items: IntegrationItem[];
+}
+
+const initialIntegrations: IntegrationCategory[] = [
   {
     category: "CRM & Sales",
     items: [
@@ -84,7 +105,62 @@ const integrations = [
   },
 ];
 
+const fieldMappings = [
+  { bouncer: "Email", crm: "Email" },
+  { bouncer: "Phone", crm: "Phone" },
+  { bouncer: "Score", crm: "Lead Score (Custom)" },
+];
+
 export default function IntegrationsPage() {
+  const { addToast } = useToast();
+  const [integrations, setIntegrations] =
+    useState<IntegrationCategory[]>(initialIntegrations);
+  const [connecting, setConnecting] = useState<string | null>(null);
+  const [configModalOpen, setConfigModalOpen] = useState(false);
+  const [configuring, setConfiguring] = useState<string | null>(null);
+
+  const updateIntegration = (
+    name: string,
+    updates: Partial<IntegrationItem>
+  ) => {
+    setIntegrations((prev) =>
+      prev.map((cat) => ({
+        ...cat,
+        items: cat.items.map((item) =>
+          item.name === name ? { ...item, ...updates } : item
+        ),
+      }))
+    );
+  };
+
+  const handleConnect = (name: string) => {
+    setConnecting(name);
+    setTimeout(() => {
+      updateIntegration(name, { connected: true, footerLink: "Configure" });
+      addToast(`${name} connected successfully`);
+      setConnecting(null);
+    }, 1500);
+  };
+
+  const handleConfigure = (name: string) => {
+    setConfiguring(name);
+    setConfigModalOpen(true);
+  };
+
+  const handleDisconnect = () => {
+    if (!configuring) return;
+    updateIntegration(configuring, { connected: false, footerLink: null });
+    addToast(`${configuring} disconnected`);
+    setConfigModalOpen(false);
+    setConfiguring(null);
+  };
+
+  const handleSaveMapping = () => {
+    addToast("Field mapping saved");
+    setConfigModalOpen(false);
+    setConfiguring(null);
+  };
+
   return (
     <>
       {/* Page Header */}
@@ -161,12 +237,23 @@ export default function IntegrationsPage() {
 
                     {/* Action */}
                     {item.footerLink ? (
-                      <span className="text-brand text-[13px] font-medium cursor-pointer hover:underline">
+                      <span
+                        className="text-brand text-[13px] font-medium cursor-pointer hover:underline"
+                        onClick={() => handleConfigure(item.name)}
+                      >
                         {item.footerLink} &rarr;
                       </span>
                     ) : (
-                      <button className="border border-border text-dark font-heading text-[13px] px-4 py-1.5 cursor-pointer bg-white hover:bg-surface transition-colors">
-                        Connect
+                      <button
+                        className="border border-border text-dark font-heading text-[13px] px-4 py-1.5 cursor-pointer bg-white hover:bg-surface transition-colors"
+                        onClick={() => handleConnect(item.name)}
+                        disabled={connecting === item.name}
+                      >
+                        {connecting === item.name ? (
+                          <span className="animate-pulse">Connecting...</span>
+                        ) : (
+                          "Connect"
+                        )}
                       </button>
                     )}
                   </div>
@@ -176,6 +263,68 @@ export default function IntegrationsPage() {
           </div>
         ))}
       </div>
+
+      {/* Configure Modal */}
+      <Modal
+        open={configModalOpen}
+        onClose={() => {
+          setConfigModalOpen(false);
+          setConfiguring(null);
+        }}
+        title={`Configure ${configuring ?? ""}`}
+      >
+        <div className="flex flex-col gap-6">
+          {/* Field Mapping */}
+          <div>
+            <h3 className="font-heading text-[13px] font-semibold text-dark mb-3">
+              Field mapping
+            </h3>
+            <div className="flex flex-col gap-2">
+              {fieldMappings.map((mapping) => (
+                <div
+                  key={mapping.bouncer}
+                  className="flex items-center gap-3"
+                >
+                  <span className="bg-surface p-2 text-[13px] text-dark font-medium flex-1">
+                    {mapping.bouncer}
+                  </span>
+                  <ArrowRight size={14} className="text-gray shrink-0" />
+                  <span className="bg-surface p-2 text-[13px] text-dark font-medium flex-1">
+                    {mapping.crm}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center justify-between border-t border-border pt-4">
+            <button
+              onClick={handleDisconnect}
+              className="text-brand text-[13px] font-medium cursor-pointer hover:underline bg-transparent border-none p-0"
+            >
+              Disconnect
+            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  setConfigModalOpen(false);
+                  setConfiguring(null);
+                }}
+                className="border border-border text-dark font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer bg-white hover:bg-surface transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={handleSaveMapping}
+                className="bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-brand/90 transition-colors border-none"
+              >
+                Save mapping
+              </button>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Check,
   ChevronDown,
@@ -18,14 +19,22 @@ import {
 function ButtonPrimary({
   children,
   className = "",
+  href,
 }: {
   children: React.ReactNode;
   className?: string;
+  href?: string;
 }) {
+  const classes = `bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-dark/90 transition-colors inline-block text-center ${className}`;
+  if (href) {
+    return (
+      <Link href={href} className={classes}>
+        {children}
+      </Link>
+    );
+  }
   return (
-    <button
-      className={`bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-dark/90 transition-colors ${className}`}
-    >
+    <button className={classes}>
       {children}
     </button>
   );
@@ -34,13 +43,26 @@ function ButtonPrimary({
 function ButtonSecondary({
   children,
   className = "",
+  onClick,
+  href,
 }: {
   children: React.ReactNode;
   className?: string;
+  onClick?: () => void;
+  href?: string;
 }) {
+  const classes = `border border-border font-heading text-[13px] font-medium text-dark px-5 py-2.5 cursor-pointer hover:bg-surface transition-colors inline-block text-center ${className}`;
+  if (href) {
+    return (
+      <Link href={href} className={classes}>
+        {children}
+      </Link>
+    );
+  }
   return (
     <button
-      className={`border border-border font-heading text-[13px] font-medium text-dark px-5 py-2.5 cursor-pointer hover:bg-surface transition-colors ${className}`}
+      onClick={onClick}
+      className={classes}
     >
       {children}
     </button>
@@ -50,14 +72,22 @@ function ButtonSecondary({
 function ButtonCTA({
   children,
   className = "",
+  href,
 }: {
   children: React.ReactNode;
   className?: string;
+  href?: string;
 }) {
+  const classes = `bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-brand/90 transition-colors inline-block text-center ${className}`;
+  if (href) {
+    return (
+      <Link href={href} className={classes}>
+        {children}
+      </Link>
+    );
+  }
   return (
-    <button
-      className={`bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-brand/90 transition-colors ${className}`}
-    >
+    <button className={classes}>
       {children}
     </button>
   );
@@ -112,26 +142,31 @@ function Nav() {
 
         {/* Desktop nav links */}
         <div className="hidden md:flex items-center gap-8">
-          {["How it works", "Pricing", "Docs", "Blog"].map((link) => (
-            <a
-              key={link}
-              href="#"
+          {[
+            { label: "How it works", href: "#how-it-works" },
+            { label: "Pricing", href: "#pricing" },
+            { label: "Docs", href: "/dashboard/settings" },
+            { label: "Blog", href: "#" },
+          ].map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
               className="font-heading text-sm text-gray hover:text-dark transition-colors"
             >
-              {link}
-            </a>
+              {link.label}
+            </Link>
           ))}
         </div>
 
         {/* Desktop right */}
         <div className="hidden md:flex items-center gap-4">
-          <a
-            href="#"
+          <Link
+            href="/dashboard"
             className="font-heading text-sm text-gray hover:text-dark transition-colors"
           >
             Login
-          </a>
-          <ButtonPrimary>Start for free</ButtonPrimary>
+          </Link>
+          <ButtonPrimary href="/dashboard">Start for free</ButtonPrimary>
         </div>
 
         {/* Mobile hamburger */}
@@ -151,23 +186,28 @@ function Nav() {
       {/* Mobile menu panel */}
       {menuOpen && (
         <div className="md:hidden border-t border-border px-5 py-4 flex flex-col gap-4">
-          {["How it works", "Pricing", "Docs", "Blog"].map((link) => (
-            <a
-              key={link}
-              href="#"
+          {[
+            { label: "How it works", href: "#how-it-works" },
+            { label: "Pricing", href: "#pricing" },
+            { label: "Docs", href: "/dashboard/settings" },
+            { label: "Blog", href: "#" },
+          ].map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
               className="font-heading text-sm text-gray hover:text-dark transition-colors"
             >
-              {link}
-            </a>
+              {link.label}
+            </Link>
           ))}
           <div className="border-t border-border pt-4 flex flex-col gap-3">
-            <a
-              href="#"
+            <Link
+              href="/dashboard"
               className="font-heading text-sm text-gray hover:text-dark transition-colors"
             >
               Login
-            </a>
-            <ButtonPrimary className="w-full">Start for free</ButtonPrimary>
+            </Link>
+            <ButtonPrimary href="/dashboard" className="w-full">Start for free</ButtonPrimary>
           </div>
         </div>
       )}
@@ -200,8 +240,11 @@ function Hero() {
           <span className="hidden md:inline"> — all in under 800ms</span>.
         </p>
         <div className="flex flex-col md:flex-row md:items-center gap-3">
-          <ButtonCTA className="w-full md:w-auto">Start for free</ButtonCTA>
-          <ButtonSecondary className="w-full md:w-auto">
+          <ButtonCTA href="/dashboard" className="w-full md:w-auto">Start for free</ButtonCTA>
+          <ButtonSecondary
+            className="w-full md:w-auto"
+            onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+          >
             See how it works
           </ButtonSecondary>
         </div>
@@ -336,7 +379,7 @@ const steps = [
 
 function HowItWorks() {
   return (
-    <section className="px-5 py-12 md:px-12 md:py-20 flex flex-col gap-8 md:gap-12">
+    <section id="how-it-works" className="px-5 py-12 md:px-12 md:py-20 flex flex-col gap-8 md:gap-12">
       <div className="flex flex-col gap-2">
         <h2 className="font-heading text-[28px] md:text-[40px] font-medium tracking-tight text-dark">
           How it works
@@ -499,7 +542,7 @@ const tiers = [
 
 function Pricing() {
   return (
-    <section className="px-5 py-12 md:px-12 md:py-20 flex flex-col items-center gap-8 md:gap-12">
+    <section id="pricing" className="px-5 py-12 md:px-12 md:py-20 flex flex-col items-center gap-8 md:gap-12">
       <div className="flex flex-col items-center gap-2">
         <h2 className="font-heading text-[28px] md:text-[40px] font-medium tracking-tight leading-[1.1] text-dark text-center">
           Simple, transparent
@@ -599,9 +642,9 @@ function Pricing() {
               </div>
             </div>
             {tier.featured ? (
-              <ButtonCTA className="w-full">{tier.btnLabel}</ButtonCTA>
+              <ButtonCTA href="/dashboard" className="w-full">{tier.btnLabel}</ButtonCTA>
             ) : (
-              <ButtonSecondary className="w-full">
+              <ButtonSecondary href="/dashboard" className="w-full">
                 {tier.btnLabel}
               </ButtonSecondary>
             )}
@@ -665,7 +708,7 @@ function FinalCTA() {
         Start validating in under 5 minutes
         <span className="hidden md:inline">. Free</span>.
       </p>
-      <ButtonCTA className="w-full md:w-auto">Start for free</ButtonCTA>
+      <ButtonCTA href="/dashboard" className="w-full md:w-auto">Start for free</ButtonCTA>
       <p className="text-xs md:text-[13px] text-gray">
         No credit card required
         <span className="hidden md:inline"> · 250 free validations/mo</span>
@@ -696,9 +739,41 @@ function Footer() {
         {/* Columns */}
         <div className="flex gap-8 md:gap-20">
           {[
-            { title: "Product", links: ["Pricing", "Docs"], desktopLinks: ["Pricing", "Docs", "API"] },
-            { title: "Company", links: ["About", "Blog"], desktopLinks: ["About", "Blog", "Changelog"] },
-            { title: "Legal", links: ["Privacy", "Terms"], desktopLinks: ["Privacy", "Terms"] },
+            {
+              title: "Product",
+              links: [
+                { label: "Pricing", href: "#pricing" },
+                { label: "Docs", href: "/dashboard/settings" },
+              ],
+              desktopLinks: [
+                { label: "Pricing", href: "#pricing" },
+                { label: "Docs", href: "/dashboard/settings" },
+                { label: "API", href: "/dashboard/settings" },
+              ],
+            },
+            {
+              title: "Company",
+              links: [
+                { label: "About", href: "#" },
+                { label: "Blog", href: "#" },
+              ],
+              desktopLinks: [
+                { label: "About", href: "#" },
+                { label: "Blog", href: "#" },
+                { label: "Changelog", href: "#" },
+              ],
+            },
+            {
+              title: "Legal",
+              links: [
+                { label: "Privacy", href: "#" },
+                { label: "Terms", href: "#" },
+              ],
+              desktopLinks: [
+                { label: "Privacy", href: "#" },
+                { label: "Terms", href: "#" },
+              ],
+            },
           ].map((col) => (
             <div key={col.title} className="flex flex-col gap-2.5 md:gap-3 flex-1 md:flex-none">
               <span className="font-heading text-xs md:text-[13px] font-semibold text-dark">
@@ -706,23 +781,23 @@ function Footer() {
               </span>
               {/* Mobile links */}
               {col.links.map((link) => (
-                <a
-                  key={link}
-                  href="#"
+                <Link
+                  key={link.label}
+                  href={link.href}
                   className="md:hidden text-xs text-gray hover:text-dark transition-colors"
                 >
-                  {link}
-                </a>
+                  {link.label}
+                </Link>
               ))}
               {/* Desktop links */}
               {col.desktopLinks.map((link) => (
-                <a
-                  key={`d-${link}`}
-                  href="#"
+                <Link
+                  key={`d-${link.label}`}
+                  href={link.href}
                   className="hidden md:block text-[13px] text-gray hover:text-dark transition-colors"
                 >
-                  {link}
-                </a>
+                  {link.label}
+                </Link>
               ))}
             </div>
           ))}
