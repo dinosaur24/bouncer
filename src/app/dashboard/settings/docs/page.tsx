@@ -47,7 +47,7 @@ const articles: Record<string, { title: string; content: React.ReactNode }> = {
           </h3>
           <p className="text-[13px] text-gray leading-relaxed">
             Go to Settings → Snippet Install to copy the full snippet tag with
-            your unique data-token. This token identifies your Bouncer account.
+            your unique form key. This key identifies your validation source.
           </p>
         </div>
 
