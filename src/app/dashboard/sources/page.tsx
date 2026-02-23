@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Copy } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { Modal } from "@/components/Modal";
 import { useSources } from "@/contexts/SourcesContext";
@@ -148,6 +149,22 @@ export default function SourcesPage() {
             <p className="text-[13px] text-gray leading-relaxed">
               {source.description}
             </p>
+
+            {/* Form Key */}
+            <div className="flex items-center gap-2 bg-surface px-3 py-2 rounded-lg">
+              <code className="text-[12px] font-mono text-gray flex-1 truncate">
+                {source.snippetId}
+              </code>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(source.snippetId);
+                  addToast("Form key copied");
+                }}
+                className="text-gray hover:text-dark transition-colors shrink-0 cursor-pointer"
+              >
+                <Copy size={14} />
+              </button>
+            </div>
 
             {/* Stats Row */}
             <div className="flex gap-8">
