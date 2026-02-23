@@ -1,24 +1,60 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import { Modal } from "@/components/Modal";
-
-const initialForm = {
-  firstName: "Sara",
-  lastName: "Martinez",
-  email: "sara@techcorp.io",
-  company: "TechCorp Inc.",
-};
+import { useAuth } from "@/contexts/AuthContext";
+import { useSettings } from "@/contexts/SettingsContext";
 
 export default function SettingsPage() {
   const { addToast } = useToast();
+  const { user } = useAuth();
+  const { updateProfile, deleteAccount, isLoading } = useSettings();
+  const router = useRouter();
 
-  const [form, setForm] = useState({ ...initialForm });
-  const [savedForm, setSavedForm] = useState({ ...initialForm });
+  const [form, setForm] = useState({
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
+    email: user?.email || "",
+    company: user?.company || "",
+  });
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleSave = async () => {
+    try {
+      await updateProfile(form);
+      addToast("Profile updated");
+    } catch {
+      addToast("Failed to update profile", "error");
+    }
+  };
+
+  const handleCancel = () => {
+    setForm({
+      firstName: user?.firstName || "",
+      lastName: user?.lastName || "",
+      email: user?.email || "",
+      company: user?.company || "",
+    });
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteAccount();
+      addToast("Account deleted", "error");
+      setDeleteModalOpen(false);
+      setDeleteConfirm("");
+      router.push("/");
+    } catch {
+      addToast("Failed to delete account", "error");
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <>
@@ -100,16 +136,16 @@ export default function SettingsPage() {
 
         <div className="flex gap-3">
           <button
-            onClick={() => {
-              setSavedForm(form);
-              addToast("Settings saved successfully");
-            }}
-            className="bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-dark/90 cursor-pointer"
+            onClick={handleSave}
+            disabled={isLoading}
+            className={`bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-dark/90 cursor-pointer ${
+              isLoading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
-            Save changes
+            {isLoading ? "Saving..." : "Save changes"}
           </button>
           <button
-            onClick={() => setForm(savedForm)}
+            onClick={handleCancel}
             className="border border-border text-dark font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-surface cursor-pointer"
           >
             Cancel
@@ -166,19 +202,15 @@ export default function SettingsPage() {
           </div>
           <div className="flex gap-3">
             <button
-              onClick={() => {
-                addToast("Account deletion initiated", "error");
-                setDeleteModalOpen(false);
-                setDeleteConfirm("");
-              }}
-              disabled={deleteConfirm !== "DELETE"}
+              onClick={handleDeleteAccount}
+              disabled={deleteConfirm !== "DELETE" || isDeleting}
               className={`bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 ${
-                deleteConfirm === "DELETE"
+                deleteConfirm === "DELETE" && !isDeleting
                   ? "hover:bg-brand/90 cursor-pointer"
                   : "opacity-50 cursor-not-allowed"
               }`}
             >
-              Delete my account
+              {isDeleting ? "Deleting..." : "Delete my account"}
             </button>
             <button
               onClick={() => setDeleteModalOpen(false)}

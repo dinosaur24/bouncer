@@ -18,6 +18,8 @@ import { ValidationProvider } from "@/contexts/ValidationContext";
 import { BillingProvider } from "@/contexts/BillingContext";
 import { IntegrationProvider } from "@/contexts/IntegrationContext";
 import { TeamProvider } from "@/contexts/TeamContext";
+import { SettingsProvider } from "@/contexts/SettingsContext";
+import { SourcesProvider } from "@/contexts/SourcesContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBilling } from "@/contexts/BillingContext";
 
@@ -259,11 +261,15 @@ export default function DashboardLayout({
     <BillingProvider>
       <IntegrationProvider>
         <TeamProvider>
-          <ValidationProvider>
-            <ToastProvider>
-              <DashboardLayoutInner>{children}</DashboardLayoutInner>
-            </ToastProvider>
-          </ValidationProvider>
+          <SettingsProvider>
+            <SourcesProvider>
+              <ValidationProvider>
+                <ToastProvider>
+                  <DashboardLayoutInner>{children}</DashboardLayoutInner>
+                </ToastProvider>
+              </ValidationProvider>
+            </SourcesProvider>
+          </SettingsProvider>
         </TeamProvider>
       </IntegrationProvider>
     </BillingProvider>

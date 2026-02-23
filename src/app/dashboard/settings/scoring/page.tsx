@@ -1,24 +1,38 @@
 "use client";
 
 import { useState } from "react";
-
-const ranges = [
-  { label: "Passed", color: "#22C55E", range: "70 — 100", width: "30%" },
-  { label: "Borderline", color: "#F59E0B", range: "40 — 69", width: "30%" },
-  { label: "Rejected", color: "#E42313", range: "0 — 39", width: "40%" },
-];
-
-const preview = [
-  { label: "Passed", value: "62", color: "#22C55E", bg: "bg-green/5" },
-  { label: "Borderline", value: "24", color: "#F59E0B", bg: "bg-[#FEF3C7]" },
-  { label: "Rejected", value: "14", color: "#E42313", bg: "bg-[#FEE2E2]" },
-];
+import { useToast } from "@/components/Toast";
+import { useSettings } from "@/contexts/SettingsContext";
 
 export default function ScoringPage() {
-  const [blockRejected, setBlockRejected] = useState(true);
-  const [rejectionMessage, setRejectionMessage] = useState(
-    "This lead did not meet the minimum validation score. Please submit manually or contact support."
-  );
+  const { addToast } = useToast();
+  const { scoring, updateScoring, isLoading } = useSettings();
+
+  const [passedMin, setPassedMin] = useState(scoring.passedMin);
+  const [borderlineMin, setBorderlineMin] = useState(scoring.borderlineMin);
+  const [blockRejected, setBlockRejected] = useState(scoring.blockRejected);
+  const [rejectionMessage, setRejectionMessage] = useState(scoring.rejectionMessage);
+
+  const ranges = [
+    { label: "Passed", color: "#22C55E", range: `${passedMin} — 100`, width: `${100 - passedMin}%` },
+    { label: "Borderline", color: "#F59E0B", range: `${borderlineMin} — ${passedMin - 1}`, width: `${passedMin - borderlineMin}%` },
+    { label: "Rejected", color: "#E42313", range: `0 — ${borderlineMin - 1}`, width: `${borderlineMin}%` },
+  ];
+
+  const preview = [
+    { label: "Passed", value: "62", color: "#22C55E", bg: "bg-green/5" },
+    { label: "Borderline", value: "24", color: "#F59E0B", bg: "bg-[#FEF3C7]" },
+    { label: "Rejected", value: "14", color: "#E42313", bg: "bg-[#FEE2E2]" },
+  ];
+
+  const handleSave = async () => {
+    try {
+      await updateScoring({ passedMin, borderlineMin, blockRejected, rejectionMessage });
+      addToast("Scoring thresholds updated");
+    } catch {
+      addToast("Failed to update thresholds", "error");
+    }
+  };
 
   return (
     <>
@@ -125,8 +139,14 @@ export default function ScoringPage() {
 
       {/* Save */}
       <div>
-        <button className="bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-dark/90 cursor-pointer">
-          Save thresholds
+        <button
+          onClick={handleSave}
+          disabled={isLoading}
+          className={`bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-dark/90 cursor-pointer ${
+            isLoading ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
+          {isLoading ? "Saving..." : "Save changes"}
         </button>
       </div>
     </>

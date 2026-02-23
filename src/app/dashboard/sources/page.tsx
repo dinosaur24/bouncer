@@ -3,66 +3,12 @@
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
 import { Modal } from "@/components/Modal";
-
-const defaultSources = [
-  {
-    id: 1,
-    title: "Contact Form",
-    status: "Active" as const,
-    description:
-      "Main website contact form with name, email, phone, and company fields",
-    submissions: "3,847",
-    passRate: "86%",
-    avgScore: "74",
-    lastSubmission: "2m ago",
-  },
-  {
-    id: 2,
-    title: "Newsletter Signup",
-    status: "Active" as const,
-    description: "Email-only signup form on blog and resource pages",
-    submissions: "12,453",
-    passRate: "91%",
-    avgScore: "81",
-    lastSubmission: "5m ago",
-  },
-  {
-    id: 3,
-    title: "Demo Request",
-    status: "Active" as const,
-    description:
-      "Enterprise demo booking form with detailed qualification fields",
-    submissions: "892",
-    passRate: "78%",
-    avgScore: "68",
-    lastSubmission: "18m ago",
-  },
-  {
-    id: 4,
-    title: "Webinar Registration",
-    status: "Paused" as const,
-    description: "Event registration form for monthly webinar series",
-    submissions: "2,156",
-    passRate: "83%",
-    avgScore: "71",
-    lastSubmission: "2h ago",
-  },
-  {
-    id: 5,
-    title: "API Endpoint",
-    status: "Active" as const,
-    description:
-      "/api/v1/validate direct integration for custom forms",
-    submissions: "8,721",
-    passRate: "88%",
-    avgScore: "76",
-    lastSubmission: "30s ago",
-  },
-];
+import { useSources } from "@/contexts/SourcesContext";
+import type { FormSource } from "@/lib/types";
 
 export default function SourcesPage() {
   const { addToast } = useToast();
-  const [sources, setSources] = useState(defaultSources);
+  const { sources, isLoading, addSource, updateSource, deleteSource } = useSources();
 
   // Add Source modal state
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -74,10 +20,17 @@ export default function SourcesPage() {
     ip: true,
     domain: true,
   });
+  const [isCreating, setIsCreating] = useState(false);
 
   // Edit modal state
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editingSource, setEditingSource] = useState<typeof sources[0] | null>(null);
+  const [editingSource, setEditingSource] = useState<FormSource | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Delete confirmation state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deletingSourceId, setDeletingSourceId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleOpenAdd = () => {
     setNewName("");
@@ -86,35 +39,65 @@ export default function SourcesPage() {
     setAddModalOpen(true);
   };
 
-  const handleCreateSource = () => {
+  const handleCreateSource = async () => {
     if (!newName.trim()) return;
-    const newSource = {
-      id: Math.max(...sources.map((s) => s.id), 0) + 1,
-      title: newName.trim(),
-      status: "Active" as const,
-      description: newDomain ? `Validation source for ${newDomain}` : "",
-      submissions: "0",
-      passRate: "N/A",
-      avgScore: "N/A",
-      lastSubmission: "N/A",
-    };
-    setSources((prev) => [...prev, newSource]);
-    setAddModalOpen(false);
-    addToast("Source created successfully");
+    setIsCreating(true);
+    try {
+      await addSource({
+        title: newName.trim(),
+        domain: newDomain.trim(),
+        description: newDomain ? `Validation source for ${newDomain}` : "",
+      });
+      setAddModalOpen(false);
+      addToast("Source created");
+    } catch {
+      addToast("Failed to create source", "error");
+    } finally {
+      setIsCreating(false);
+    }
   };
 
-  const handleOpenEdit = (source: typeof sources[0]) => {
+  const handleOpenEdit = (source: FormSource) => {
     setEditingSource({ ...source });
     setEditModalOpen(true);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editingSource) return;
-    setSources((prev) =>
-      prev.map((s) => (s.id === editingSource.id ? editingSource : s))
-    );
-    setEditModalOpen(false);
-    addToast("Source updated");
+    setIsSaving(true);
+    try {
+      await updateSource(editingSource.id, {
+        title: editingSource.title,
+        description: editingSource.description,
+        status: editingSource.status,
+      });
+      setEditModalOpen(false);
+      addToast("Source updated");
+    } catch {
+      addToast("Failed to update source", "error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteConfirm = (id: string) => {
+    setDeletingSourceId(id);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deletingSourceId) return;
+    setIsDeleting(true);
+    try {
+      await deleteSource(deletingSourceId);
+      setDeleteModalOpen(false);
+      setDeletingSourceId(null);
+      addToast("Source deleted");
+    } catch {
+      addToast("Failed to delete source", "error");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -173,7 +156,7 @@ export default function SourcesPage() {
                   Submissions
                 </span>
                 <span className="font-heading text-lg font-semibold text-dark">
-                  {source.submissions}
+                  {source.submissions.toLocaleString()}
                 </span>
               </div>
               <div className="flex flex-col gap-1">
@@ -181,7 +164,7 @@ export default function SourcesPage() {
                   Pass rate
                 </span>
                 <span className="font-heading text-lg font-semibold text-dark">
-                  {source.passRate}
+                  {source.passRate}%
                 </span>
               </div>
               <div className="flex flex-col gap-1">
@@ -199,12 +182,20 @@ export default function SourcesPage() {
               <span className="text-[11px] text-[#999999]">
                 Last submission {source.lastSubmission}
               </span>
-              <span
-                onClick={() => handleOpenEdit(source)}
-                className="text-brand text-[13px] font-medium cursor-pointer hover:underline"
-              >
-                Edit &rarr;
-              </span>
+              <div className="flex items-center gap-3">
+                <span
+                  onClick={() => handleDeleteConfirm(source.id)}
+                  className="text-brand text-[13px] font-medium cursor-pointer hover:underline"
+                >
+                  Delete
+                </span>
+                <span
+                  onClick={() => handleOpenEdit(source)}
+                  className="text-brand text-[13px] font-medium cursor-pointer hover:underline"
+                >
+                  Edit &rarr;
+                </span>
+              </div>
             </div>
           </div>
         ))}
@@ -272,9 +263,12 @@ export default function SourcesPage() {
             </button>
             <button
               onClick={handleCreateSource}
-              className="bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-dark/90 transition-colors"
+              disabled={isCreating}
+              className={`bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-dark/90 transition-colors ${
+                isCreating ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
-              Create source
+              {isCreating ? "Creating..." : "Create source"}
             </button>
           </div>
         </div>
@@ -344,13 +338,42 @@ export default function SourcesPage() {
               </button>
               <button
                 onClick={handleSaveEdit}
-                className="bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-dark/90 transition-colors"
+                disabled={isSaving}
+                className={`bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-dark/90 transition-colors ${
+                  isSaving ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               >
-                Save changes
+                {isSaving ? "Saving..." : "Save changes"}
               </button>
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} title="Delete Source">
+        <div className="flex flex-col gap-5">
+          <p className="text-[13px] text-gray leading-relaxed">
+            Are you sure you want to delete this source? All associated validation data will be lost. This action cannot be undone.
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className={`bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 ${
+                isDeleting ? "opacity-50 cursor-not-allowed" : "hover:bg-brand/90 cursor-pointer"
+              }`}
+            >
+              {isDeleting ? "Deleting..." : "Delete source"}
+            </button>
+            <button
+              onClick={() => setDeleteModalOpen(false)}
+              className="border border-border text-dark font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-surface cursor-pointer"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
       </Modal>
     </>
   );

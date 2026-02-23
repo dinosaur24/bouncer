@@ -1,26 +1,103 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Copy, Check } from "lucide-react";
+import { useToast } from "@/components/Toast";
+import { useSettings } from "@/contexts/SettingsContext";
+import { Modal } from "@/components/Modal";
 
 export default function APIPage() {
+  const { addToast } = useToast();
+  const { apiKeys, webhook, regenerateApiKey, saveWebhook, testWebhook, isLoading } = useSettings();
+
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
-  const [webhookUrl, setWebhookUrl] = useState("https://api.acme.com/webhooks");
-  const [events, setEvents] = useState({
+  const [webhookUrl, setWebhookUrl] = useState(webhook.url);
+  const [events, setEvents] = useState<Record<string, boolean>>({
     "validation.completed": true,
     "validation.failed": true,
     "lead.scored": false,
     "lead.blocked": false,
   });
+  const [regenModalOpen, setRegenModalOpen] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
+  const [isSavingWebhook, setIsSavingWebhook] = useState(false);
+
+  // Sync webhook state from context
+  useEffect(() => {
+    setWebhookUrl(webhook.url);
+    if (webhook.events.length > 0) {
+      const eventMap: Record<string, boolean> = {
+        "validation.completed": false,
+        "validation.failed": false,
+        "lead.scored": false,
+        "lead.blocked": false,
+      };
+      webhook.events.forEach(e => {
+        if (e in eventMap) eventMap[e] = true;
+      });
+      setEvents(eventMap);
+    }
+  }, [webhook]);
+
+  const maskedLiveKey = apiKeys.liveKey
+    ? apiKeys.liveKey.substring(0, 8) + "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
+    : "sk_live_\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022";
 
   const copyToClipboard = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
     setCopiedKey(key);
+    addToast("Copied to clipboard");
     setTimeout(() => setCopiedKey(null), 2000);
   };
 
   const toggleEvent = (event: string) => {
     setEvents((prev) => ({ ...prev, [event]: !prev[event as keyof typeof prev] }));
+  };
+
+  const handleRegenerate = async () => {
+    setIsRegenerating(true);
+    try {
+      const newKey = await regenerateApiKey("live");
+      const masked = newKey.substring(0, 12) + "..." + newKey.substring(newKey.length - 4);
+      addToast(`New live key: ${masked}`);
+      setRegenModalOpen(false);
+    } catch {
+      addToast("Failed to regenerate key", "error");
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
+
+  const handleSaveWebhook = async () => {
+    setIsSavingWebhook(true);
+    try {
+      const activeEvents = Object.entries(events)
+        .filter(([, checked]) => checked)
+        .map(([event]) => event);
+      await saveWebhook({ url: webhookUrl, events: activeEvents, active: webhookUrl.length > 0 });
+      addToast("Webhook saved");
+    } catch {
+      addToast("Failed to save webhook", "error");
+    } finally {
+      setIsSavingWebhook(false);
+    }
+  };
+
+  const handleTestWebhook = async () => {
+    setIsTesting(true);
+    try {
+      const success = await testWebhook();
+      if (success) {
+        addToast("Test event sent successfully");
+      } else {
+        addToast("Webhook test failed", "error");
+      }
+    } catch {
+      addToast("Webhook test failed", "error");
+    } finally {
+      setIsTesting(false);
+    }
   };
 
   return (
@@ -50,12 +127,12 @@ export default function APIPage() {
             <div className="flex gap-2">
               <input
                 type="text"
-                value="sk_live_••••••••••••••••"
+                value={maskedLiveKey}
                 readOnly
                 className="flex-1 border border-border px-4 py-2.5 text-[13px] text-dark font-heading bg-surface focus:outline-none"
               />
               <button
-                onClick={() => copyToClipboard("sk_live_a8f3k2m9x4p7q1w6", "live")}
+                onClick={() => copyToClipboard(apiKeys.liveKey, "live")}
                 className="border border-border px-3 py-2.5 hover:bg-surface cursor-pointer flex items-center"
               >
                 {copiedKey === "live" ? (
@@ -75,12 +152,12 @@ export default function APIPage() {
             <div className="flex gap-2">
               <input
                 type="text"
-                value="sk_test_cJRz5s4e9fg7a9f7"
+                value={apiKeys.testKey}
                 readOnly
                 className="flex-1 border border-border px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none"
               />
               <button
-                onClick={() => copyToClipboard("sk_test_cJRz5s4e9fg7a9f7", "test")}
+                onClick={() => copyToClipboard(apiKeys.testKey, "test")}
                 className="border border-border px-3 py-2.5 hover:bg-surface cursor-pointer flex items-center"
               >
                 {copiedKey === "test" ? (
@@ -92,7 +169,10 @@ export default function APIPage() {
             </div>
           </div>
 
-          <button className="text-[13px] text-brand font-heading font-medium hover:underline cursor-pointer self-start">
+          <button
+            onClick={() => setRegenModalOpen(true)}
+            className="text-[13px] text-brand font-heading font-medium hover:underline cursor-pointer self-start"
+          >
             Regenerate keys
           </button>
         </div>
@@ -149,14 +229,56 @@ export default function APIPage() {
         </div>
 
         <div className="flex gap-3">
-          <button className="bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-dark/90 cursor-pointer">
-            Save webhook
+          <button
+            onClick={handleSaveWebhook}
+            disabled={isSavingWebhook}
+            className={`bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-dark/90 cursor-pointer ${
+              isSavingWebhook ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            {isSavingWebhook ? "Saving..." : "Save webhook"}
           </button>
-          <button className="border border-border text-dark font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-surface cursor-pointer">
-            Send test event
+          <button
+            onClick={handleTestWebhook}
+            disabled={isTesting}
+            className={`border border-border text-dark font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-surface cursor-pointer ${
+              isTesting ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            {isTesting ? "Sending..." : "Send test event"}
           </button>
         </div>
       </div>
+
+      {/* Regenerate Confirmation Modal */}
+      <Modal
+        open={regenModalOpen}
+        onClose={() => setRegenModalOpen(false)}
+        title="Regenerate API Key"
+      >
+        <div className="flex flex-col gap-5">
+          <p className="text-[13px] text-gray leading-relaxed">
+            Are you sure you want to regenerate your live API key? The current key will be immediately invalidated and any integrations using it will stop working.
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={handleRegenerate}
+              disabled={isRegenerating}
+              className={`bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 ${
+                isRegenerating ? "opacity-50 cursor-not-allowed" : "hover:bg-brand/90 cursor-pointer"
+              }`}
+            >
+              {isRegenerating ? "Regenerating..." : "Regenerate key"}
+            </button>
+            <button
+              onClick={() => setRegenModalOpen(false)}
+              className="border border-border text-dark font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-surface cursor-pointer"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }

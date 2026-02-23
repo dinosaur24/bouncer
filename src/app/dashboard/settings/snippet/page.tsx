@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, Check, CheckCircle } from "lucide-react";
+import { Copy, Check, CheckCircle, Loader2 } from "lucide-react";
+import { simulateAPI } from "@/lib/api";
 
 const snippets: Record<string, string> = {
   HTML: `<script
@@ -61,12 +62,22 @@ export default function SnippetPage() {
   const [codeTab, setCodeTab] = useState("HTML");
   const [guideTab, setGuideTab] = useState("HTML");
   const [copied, setCopied] = useState(false);
-  const [verified, setVerified] = useState(false);
+  const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
 
   const handleCopy = () => {
     navigator.clipboard.writeText(snippets[codeTab]);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleTestInstallation = async () => {
+    setTestStatus('testing');
+    try {
+      await simulateAPI(true, { delay: 1500, failRate: 0 });
+      setTestStatus('success');
+    } catch {
+      setTestStatus('error');
+    }
   };
 
   return (
@@ -129,15 +140,32 @@ export default function SnippetPage() {
       {/* Verification */}
       <div className="flex flex-col md:flex-row md:items-center gap-3">
         <button
-          onClick={() => setVerified(true)}
+          onClick={handleTestInstallation}
+          disabled={testStatus === 'testing'}
           className={`flex items-center justify-center gap-2 font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer transition-colors ${
-            verified
+            testStatus === 'success'
               ? "text-green"
-              : "border border-border text-dark hover:bg-surface"
+              : testStatus === 'testing'
+                ? "border border-border text-gray cursor-not-allowed"
+                : "border border-border text-dark hover:bg-surface"
           }`}
         >
-          <CheckCircle size={16} />
-          {verified ? "Snippet detected on acme.com" : "Test my installation"}
+          {testStatus === 'testing' ? (
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              Testing...
+            </>
+          ) : testStatus === 'success' ? (
+            <>
+              <CheckCircle size={16} />
+              Snippet detected on acme.com
+            </>
+          ) : (
+            <>
+              <CheckCircle size={16} />
+              Test my installation
+            </>
+          )}
         </button>
       </div>
 
