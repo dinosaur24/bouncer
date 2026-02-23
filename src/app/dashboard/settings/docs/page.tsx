@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Search, ChevronRight, ChevronDown } from "lucide-react";
+import { getHtmlSnippet, getFormKeyOrPlaceholder } from "@/lib/snippets";
 
 const docSections = [
   {
@@ -61,14 +62,12 @@ const articles: Record<string, { title: string; content: React.ReactNode }> = {
           </p>
           <div className="bg-dark p-4 overflow-x-auto rounded-lg">
             <pre className="text-[13px] font-mono text-[#4ADE80]">
-{`<script
-  src="https://cdn.bouncer.io/snippet.js"
-  data-token="bnc_sk_abc0ef"
-  data-config="auto_validate"
-  async>
-</script>`}
+{getHtmlSnippet(getFormKeyOrPlaceholder())}
             </pre>
           </div>
+          <p className="text-[12px] text-gray italic">
+            Replace the form key with your actual key from Settings → Sources.
+          </p>
         </div>
 
         <div className="flex flex-col gap-3">
@@ -83,7 +82,7 @@ const articles: Record<string, { title: string; content: React.ReactNode }> = {
           </p>
         </div>
 
-        <div className="bg-[#FEF3C7] p-4">
+        <div className="bg-[#FEF3C7] p-4 rounded-lg">
           <p className="text-[13px] text-[#92400E]">
             <strong>Tip:</strong> The snippet is detected within 60 seconds. If
             detection fails, clear your browser cache and try again. Ensure no
