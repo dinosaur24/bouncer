@@ -4,288 +4,71 @@ import { useState, useRef, useEffect } from "react";
 import { Search, Mail, Phone, Globe, Building2, Download, Filter } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { ValidationDrawer, type ValidationDetail } from "@/components/ValidationDrawer";
+import { useValidations } from "@/contexts/ValidationContext";
+import type { Validation, SignalResult, ValidationStatus } from "@/lib/types";
 
 const dateRanges = ["Last 30 days", "Last 7 days", "Custom"] as const;
 type DateRange = (typeof dateRanges)[number];
 
-type Status = "Passed" | "Borderline" | "Rejected";
-
-interface Validation {
-  email: string;
-  status: Status;
-  score: number;
-  signals: string;
-  source: string;
-  time: string;
-}
-
-const validations: Validation[] = [
-  {
-    email: "sarah@techcorp.io",
-    status: "Passed",
-    score: 92,
-    signals: "Email \u00B7 Phone",
-    source: "Contact Form",
-    time: "2 min ago",
-  },
-  {
-    email: "j.miller@startup.co",
-    status: "Borderline",
-    score: 54,
-    signals: "Email",
-    source: "API",
-    time: "5 min ago",
-  },
-  {
-    email: "test123@mailinator.com",
-    status: "Rejected",
-    score: 18,
-    signals: "Email \u00B7 Phone \u00B7 IP \u00B7 Domain",
-    source: "Newsletter",
-    time: "8 min ago",
-  },
-  {
-    email: "anna.chen@enterprise.com",
-    status: "Passed",
-    score: 87,
-    signals: "Email \u00B7 IP",
-    source: "Demo Request",
-    time: "12 min ago",
-  },
-  {
-    email: "mark@agency.io",
-    status: "Passed",
-    score: 78,
-    signals: "Phone \u00B7 Domain",
-    source: "Contact Form",
-    time: "15 min ago",
-  },
-  {
-    email: "info@spambot.xyz",
-    status: "Rejected",
-    score: 8,
-    signals: "Email \u00B7 IP \u00B7 Domain",
-    source: "API",
-    time: "22 min ago",
-  },
-  {
-    email: "hello@designstudio.com",
-    status: "Passed",
-    score: 91,
-    signals: "Email \u00B7 Phone \u00B7 Domain",
-    source: "Webinar",
-    time: "34 min ago",
-  },
-];
-
-const validationDetails: Record<string, ValidationDetail> = {
-  "sarah@techcorp.io": {
-    email: "sarah@techcorp.io",
-    status: "Passed",
-    score: 92,
-    source: "Contact Form",
-    time: "2 min ago",
-    ip: "192.168.1.42",
-    phone: "+1 555-234-5678",
-    company: "TechCorp Inc",
-    signals: [
-      {
-        name: "Email Verification",
-        icon: Mail,
-        status: "pass",
-        label: "Valid corporate email",
-        detail: "MX records verified, mailbox exists on techcorp.io",
-      },
-      {
-        name: "Phone Verification",
-        icon: Phone,
-        status: "pass",
-        label: "Valid phone number",
-        detail: "US mobile number, carrier verified",
-      },
-    ],
-  },
-  "j.miller@startup.co": {
-    email: "j.miller@startup.co",
-    status: "Borderline",
-    score: 54,
-    source: "API",
-    time: "5 min ago",
-    ip: "10.0.0.88",
-    phone: "+1 555-876-5432",
-    company: "Startup Co",
-    signals: [
-      {
-        name: "Email Verification",
-        icon: Mail,
-        status: "warn",
-        label: "New domain detected",
-        detail: "Domain startup.co registered 3 months ago, limited history",
-      },
-    ],
-  },
-  "test123@mailinator.com": {
-    email: "test123@mailinator.com",
-    status: "Rejected",
-    score: 18,
-    source: "Newsletter",
-    time: "8 min ago",
-    ip: "203.0.113.42",
-    phone: "+44 000 000",
-    company: "Unknown",
-    signals: [
-      {
-        name: "Email Verification",
-        icon: Mail,
-        status: "fail",
-        label: "Disposable email provider",
-        detail: "mailinator.com is a known disposable email service",
-      },
-      {
-        name: "Phone Verification",
-        icon: Phone,
-        status: "fail",
-        label: "Invalid phone number",
-        detail: "Number format invalid, does not match any known carrier",
-      },
-      {
-        name: "IP Analysis",
-        icon: Globe,
-        status: "fail",
-        label: "Spam IP detected",
-        detail: "IP 203.0.113.42 found on 3 blacklists",
-      },
-      {
-        name: "Domain Check",
-        icon: Building2,
-        status: "fail",
-        label: "Blacklisted domain",
-        detail: "mailinator.com is on the global disposable domain blacklist",
-      },
-    ],
-  },
-  "anna.chen@enterprise.com": {
-    email: "anna.chen@enterprise.com",
-    status: "Passed",
-    score: 87,
-    source: "Demo Request",
-    time: "12 min ago",
-    ip: "172.16.0.5",
-    phone: "+1 555-345-6789",
-    company: "Enterprise Inc",
-    signals: [
-      {
-        name: "Email Verification",
-        icon: Mail,
-        status: "pass",
-        label: "Valid corporate email",
-        detail: "MX records verified, mailbox exists on enterprise.com",
-      },
-      {
-        name: "IP Analysis",
-        icon: Globe,
-        status: "pass",
-        label: "Clean IP address",
-        detail: "IP 172.16.0.5 has no blacklist entries, corporate range",
-      },
-    ],
-  },
-  "mark@agency.io": {
-    email: "mark@agency.io",
-    status: "Passed",
-    score: 78,
-    source: "Contact Form",
-    time: "15 min ago",
-    ip: "192.168.2.10",
-    phone: "+1 555-987-6543",
-    company: "Agency.io",
-    signals: [
-      {
-        name: "Phone Verification",
-        icon: Phone,
-        status: "pass",
-        label: "Valid phone number",
-        detail: "US mobile number, carrier verified",
-      },
-      {
-        name: "Domain Check",
-        icon: Building2,
-        status: "pass",
-        label: "Established domain",
-        detail: "agency.io registered 4 years ago, good reputation",
-      },
-    ],
-  },
-  "info@spambot.xyz": {
-    email: "info@spambot.xyz",
-    status: "Rejected",
-    score: 8,
-    source: "API",
-    time: "22 min ago",
-    ip: "45.33.32.156",
-    phone: "N/A",
-    company: "SpamBot Ltd",
-    signals: [
-      {
-        name: "Email Verification",
-        icon: Mail,
-        status: "fail",
-        label: "Suspicious email pattern",
-        detail: "Generic info@ address on known spam domain",
-      },
-      {
-        name: "IP Analysis",
-        icon: Globe,
-        status: "fail",
-        label: "Malicious IP detected",
-        detail: "IP 45.33.32.156 flagged on 7 blacklists, known bot traffic",
-      },
-      {
-        name: "Domain Check",
-        icon: Building2,
-        status: "fail",
-        label: "Spam domain",
-        detail: "spambot.xyz flagged as spam, .xyz TLD with no legitimate history",
-      },
-    ],
-  },
-  "hello@designstudio.com": {
-    email: "hello@designstudio.com",
-    status: "Passed",
-    score: 91,
-    source: "Webinar",
-    time: "34 min ago",
-    ip: "192.168.5.20",
-    phone: "+1 555-111-2222",
-    company: "Design Studio",
-    signals: [
-      {
-        name: "Email Verification",
-        icon: Mail,
-        status: "pass",
-        label: "Valid corporate email",
-        detail: "MX records verified, mailbox exists on designstudio.com",
-      },
-      {
-        name: "Phone Verification",
-        icon: Phone,
-        status: "pass",
-        label: "Valid phone number",
-        detail: "US landline number, business line verified",
-      },
-      {
-        name: "Domain Check",
-        icon: Building2,
-        status: "pass",
-        label: "Established domain",
-        detail: "designstudio.com registered 8 years ago, excellent reputation",
-      },
-    ],
-  },
+const signalIconMap: Record<string, typeof Mail> = {
+  email: Mail,
+  phone: Phone,
+  ip: Globe,
+  company: Building2,
 };
 
+function formatTimeAgo(timestamp: string): string {
+  const now = new Date();
+  const then = new Date(timestamp);
+  const diffMs = now.getTime() - then.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return 'Just now';
+  if (diffMin < 60) return `${diffMin} min ago`;
+  const diffHours = Math.floor(diffMin / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}d ago`;
+}
+
+function mapSignalsToDrawer(signals: SignalResult[]) {
+  return signals.map(s => ({
+    name: s.name,
+    icon: signalIconMap[s.type] || Mail,
+    status: s.status,
+    label: s.label,
+    detail: s.detail,
+  }));
+}
+
+function mapValidationToDetail(v: Validation): ValidationDetail {
+  return {
+    email: v.email,
+    status: v.status,
+    score: v.score,
+    source: v.source,
+    time: formatTimeAgo(v.timestamp),
+    ip: v.ip,
+    phone: v.phone,
+    company: v.company,
+    signals: mapSignalsToDrawer(v.signals),
+    overridden: v.overridden,
+  };
+}
+
+function getSignalsSummary(signals: SignalResult[]): string {
+  return signals.map(s => {
+    switch (s.type) {
+      case 'email': return 'Email';
+      case 'phone': return 'Phone';
+      case 'ip': return 'IP';
+      case 'company': return 'Domain';
+      default: return s.name;
+    }
+  }).join(' \u00B7 ');
+}
+
 const statusStyles: Record<
-  Status,
+  ValidationStatus,
   { bg: string; text: string; scoreColor: string }
 > = {
   Passed: {
@@ -314,20 +97,24 @@ const columns = [
   { label: "Time", width: "flex-1" },
 ];
 
-const statusOptions: (Status | "All")[] = ["All", "Passed", "Borderline", "Rejected"];
+const statusOptions: (ValidationStatus | "All")[] = ["All", "Passed", "Borderline", "Rejected"];
+
+const ITEMS_PER_PAGE = 10;
 
 export default function ValidationsPage() {
   const [activeDateRange, setActiveDateRange] =
     useState<DateRange>("Last 30 days");
   const [activePage, setActivePage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<Status | "All">("All");
+  const [statusFilter, setStatusFilter] = useState<ValidationStatus | "All">("All");
   const [showFilters, setShowFilters] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedValidation, setSelectedValidation] =
     useState<ValidationDetail | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const { addToast } = useToast();
   const filterRef = useRef<HTMLDivElement>(null);
+  const { validations, isLoading, overrideValidation, exportCSV } = useValidations();
 
   // Close filter dropdown when clicking outside
   useEffect(() => {
@@ -346,47 +133,35 @@ export default function ValidationsPage() {
     .filter(
       (v) =>
         v.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        v.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
         v.source.toLowerCase().includes(searchQuery.toLowerCase())
     )
     .filter((v) => statusFilter === "All" || v.status === statusFilter);
 
-  const handleRowClick = (email: string) => {
-    const detail = validationDetails[email];
-    if (detail) {
-      setSelectedValidation(detail);
-      setDrawerOpen(true);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const paginatedItems = filtered.slice(
+    (activePage - 1) * ITEMS_PER_PAGE,
+    activePage * ITEMS_PER_PAGE
+  );
+
+  const handleRowClick = (v: Validation) => {
+    setSelectedId(v.id);
+    setSelectedValidation(mapValidationToDetail(v));
+    setDrawerOpen(true);
+  };
+
+  const handleOverride = async (email: string) => {
+    if (selectedId) {
+      await overrideValidation(selectedId);
+      addToast("Validation overridden to Passed", "success");
+      setDrawerOpen(false);
+      setSelectedValidation(null);
+      setSelectedId(null);
     }
   };
 
-  const handleOverride = (email: string) => {
-    addToast("Lead override accepted \u2014 syncing to CRM", "success");
-    setDrawerOpen(false);
-    setSelectedValidation(null);
-  };
-
   const handleExport = () => {
-    const headers = ["Email", "Status", "Score", "Signals", "Source", "Time"];
-    const csvRows = [
-      headers.join(","),
-      ...validations.map((v) =>
-        [
-          `"${v.email}"`,
-          v.status,
-          v.score,
-          `"${v.signals}"`,
-          `"${v.source}"`,
-          `"${v.time}"`,
-        ].join(",")
-      ),
-    ];
-    const csvContent = csvRows.join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "validations.csv";
-    link.click();
-    URL.revokeObjectURL(url);
+    exportCSV();
     addToast("Validation data exported", "success");
   };
 
@@ -430,7 +205,10 @@ export default function ValidationsPage() {
               type="text"
               placeholder="Search by email, domain..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setActivePage(1);
+              }}
               className="text-xs text-dark placeholder:text-gray outline-none bg-transparent w-full"
             />
           </div>
@@ -501,12 +279,12 @@ export default function ValidationsPage() {
         </div>
 
         {/* Table Rows */}
-        {filtered.map((row) => {
+        {paginatedItems.map((row) => {
           const style = statusStyles[row.status];
           return (
             <div
-              key={row.email}
-              onClick={() => handleRowClick(row.email)}
+              key={row.id}
+              onClick={() => handleRowClick(row)}
               className="flex items-center px-5 py-3.5 border-b border-border cursor-pointer hover:bg-surface transition-colors"
             >
               {/* Email */}
@@ -536,7 +314,7 @@ export default function ValidationsPage() {
 
               {/* Signals */}
               <div className="w-[180px]">
-                <span className="text-xs text-gray">{row.signals}</span>
+                <span className="text-xs text-gray">{getSignalsSummary(row.signals)}</span>
               </div>
 
               {/* Source */}
@@ -546,7 +324,7 @@ export default function ValidationsPage() {
 
               {/* Time */}
               <div className="flex-1">
-                <span className="text-xs text-[#999999]">{row.time}</span>
+                <span className="text-xs text-[#999999]">{formatTimeAgo(row.timestamp)}</span>
               </div>
             </div>
           );
@@ -564,11 +342,11 @@ export default function ValidationsPage() {
         {/* Pagination */}
         <div className="flex items-center justify-between px-5 py-3">
           <span className="text-xs text-[#999999]">
-            Showing 1&ndash;{filtered.length} of {filtered.length} results
+            Showing {filtered.length === 0 ? 0 : (activePage - 1) * ITEMS_PER_PAGE + 1}&ndash;{Math.min(activePage * ITEMS_PER_PAGE, filtered.length)} of {filtered.length} results
           </span>
 
           <div className="flex items-center gap-1">
-            {[1, 2, 3].map((page) => (
+            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map((page) => (
               <button
                 key={page}
                 onClick={() => setActivePage(page)}
@@ -591,6 +369,7 @@ export default function ValidationsPage() {
         onClose={() => {
           setDrawerOpen(false);
           setSelectedValidation(null);
+          setSelectedId(null);
         }}
         validation={selectedValidation}
         onOverride={handleOverride}

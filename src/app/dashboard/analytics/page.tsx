@@ -1,28 +1,25 @@
 "use client";
 
-const chartData = [
-  { day: "Mon", passed: 150, borderline: 35, rejected: 20 },
-  { day: "Tue", passed: 180, borderline: 30, rejected: 18 },
-  { day: "Wed", passed: 120, borderline: 45, rejected: 35 },
-  { day: "Thu", passed: 200, borderline: 25, rejected: 15 },
-  { day: "Fri", passed: 170, borderline: 40, rejected: 28 },
-  { day: "Sat", passed: 100, borderline: 20, rejected: 12 },
-  { day: "Sun", passed: 75, borderline: 15, rejected: 10 },
-];
-
-const maxTotal = Math.max(
-  ...chartData.map((d) => d.passed + d.borderline + d.rejected)
-);
-
-const rejectionReasons = [
-  { label: "Invalid email format", pct: 34, fill: 110 },
-  { label: "Disposable domain", pct: 28, fill: 90 },
-  { label: "Suspicious IP", pct: 19, fill: 62 },
-  { label: "Phone mismatch", pct: 12, fill: 40 },
-  { label: "Blacklisted domain", pct: 7, fill: 23 },
-];
+import { useValidations } from "@/contexts/ValidationContext";
 
 export default function AnalyticsPage() {
+  const { stats, chartData, rejectionReasons, validations } = useValidations();
+
+  const totalValidated = stats.validationsMonth;
+  const passed = validations.filter(v => v.status === 'Passed').length;
+  const borderline = validations.filter(v => v.status === 'Borderline').length;
+  const rejected = validations.filter(v => v.status === 'Rejected').length;
+  const total = validations.length || 1;
+
+  const passedPctOfTotal = Math.round((passed / total) * 100);
+  const borderlinePctOfTotal = Math.round((borderline / total) * 100);
+  const rejectedPctOfTotal = Math.round((rejected / total) * 100);
+
+  const maxTotal = Math.max(
+    ...chartData.map((d) => d.passed + d.borderline + d.rejected),
+    1
+  );
+
   return (
     <>
       {/* Header */}
@@ -57,9 +54,9 @@ export default function AnalyticsPage() {
             Total validated
           </span>
           <div className="font-heading text-2xl font-bold mt-2 text-dark">
-            48,291
+            {totalValidated.toLocaleString()}
           </div>
-          <span className="text-[11px] text-green">+12.4% vs prev. period</span>
+          <span className="text-[11px] text-green">+{stats.monthChange}% vs prev. period</span>
         </div>
 
         {/* Passed */}
@@ -68,9 +65,9 @@ export default function AnalyticsPage() {
             Passed
           </span>
           <div className="font-heading text-2xl font-bold mt-2 text-green">
-            38,633
+            {passed.toLocaleString()}
           </div>
-          <span className="text-[11px] text-gray">80.0% pass rate</span>
+          <span className="text-[11px] text-gray">{passedPctOfTotal}% pass rate</span>
         </div>
 
         {/* Borderline */}
@@ -79,9 +76,9 @@ export default function AnalyticsPage() {
             Borderline
           </span>
           <div className="font-heading text-2xl font-bold mt-2 text-[#F59E0B]">
-            5,795
+            {borderline.toLocaleString()}
           </div>
-          <span className="text-[11px] text-gray">12.0% of total</span>
+          <span className="text-[11px] text-gray">{borderlinePctOfTotal}% of total</span>
         </div>
 
         {/* Rejected */}
@@ -90,9 +87,9 @@ export default function AnalyticsPage() {
             Rejected
           </span>
           <div className="font-heading text-2xl font-bold mt-2 text-brand">
-            3,863
+            {rejected.toLocaleString()}
           </div>
-          <span className="text-[11px] text-gray">8.0% of total</span>
+          <span className="text-[11px] text-gray">{rejectedPctOfTotal}% of total</span>
         </div>
       </div>
 
@@ -133,11 +130,11 @@ export default function AnalyticsPage() {
           {/* Chart */}
           <div className="flex-1 flex items-end gap-6 justify-between">
             {chartData.map((bar) => {
-              const total = bar.passed + bar.borderline + bar.rejected;
-              const heightPct = (total / maxTotal) * 100;
-              const passedPct = (bar.passed / total) * 100;
-              const borderlinePct = (bar.borderline / total) * 100;
-              const rejectedPct = (bar.rejected / total) * 100;
+              const barTotal = bar.passed + bar.borderline + bar.rejected;
+              const heightPct = (barTotal / maxTotal) * 100;
+              const passedPct = barTotal > 0 ? (bar.passed / barTotal) * 100 : 0;
+              const borderlinePct = barTotal > 0 ? (bar.borderline / barTotal) * 100 : 0;
+              const rejectedPct = barTotal > 0 ? (bar.rejected / barTotal) * 100 : 0;
 
               return (
                 <div
@@ -186,13 +183,13 @@ export default function AnalyticsPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-[13px] text-dark">{item.label}</span>
                   <span className="font-heading text-[13px] font-semibold text-brand">
-                    {item.pct}%
+                    {item.percentage}%
                   </span>
                 </div>
                 <div className="w-full h-1.5 bg-[#F0F0F0] rounded-sm">
                   <div
                     className="h-full bg-brand rounded-sm"
-                    style={{ width: `${item.fill}px` }}
+                    style={{ width: `${item.percentage * 3.2}px` }}
                   />
                 </div>
               </div>

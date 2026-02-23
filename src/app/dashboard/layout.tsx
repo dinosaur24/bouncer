@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { ToastProvider } from "@/components/Toast";
+import { ValidationProvider } from "@/contexts/ValidationContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { label: "Overview", href: "/dashboard", icon: LayoutGrid },
@@ -32,171 +34,186 @@ const mobileBottomNav = [
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user } = useAuth();
 
   const isNavActive = (href: string) =>
     href === "/dashboard"
       ? pathname === "/dashboard"
       : pathname.startsWith(href);
 
+  const displayName = user?.firstName && user?.lastName ? user.firstName + ' ' + user.lastName : user?.email || 'User';
+  const initials = user?.firstName && user?.lastName
+    ? user.firstName[0] + user.lastName[0]
+    : user?.email ? user.email[0].toUpperCase() : 'U';
+  const planLabel = user?.plan ? user.plan.charAt(0).toUpperCase() + user.plan.slice(1) + ' Plan' : 'Free Plan';
+
   return (
-    <ToastProvider>
-      <div className="flex flex-col md:flex-row h-screen bg-white max-w-[1440px] mx-auto">
-        {/* Mobile top bar */}
-        <div className="md:hidden flex items-center justify-between px-5 py-3 border-b border-border">
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="cursor-pointer"
-          >
-            {mobileMenuOpen ? (
-              <X size={22} className="text-dark" />
-            ) : (
-              <Menu size={22} className="text-dark" />
-            )}
-          </button>
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 bg-brand" />
-            <span className="font-heading text-base font-semibold text-dark">
-              Bouncer
-            </span>
-          </div>
-          <div className="w-8 h-8 bg-dark flex items-center justify-center">
-            <span className="text-white font-heading text-[11px] font-medium">
-              SM
-            </span>
-          </div>
+    <div className="flex flex-col md:flex-row h-screen bg-white max-w-[1440px] mx-auto">
+      {/* Mobile top bar */}
+      <div className="md:hidden flex items-center justify-between px-5 py-3 border-b border-border">
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="cursor-pointer"
+        >
+          {mobileMenuOpen ? (
+            <X size={22} className="text-dark" />
+          ) : (
+            <Menu size={22} className="text-dark" />
+          )}
+        </button>
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 bg-brand" />
+          <span className="font-heading text-base font-semibold text-dark">
+            Bouncer
+          </span>
         </div>
+        <div className="w-8 h-8 bg-dark flex items-center justify-center">
+          <span className="text-white font-heading text-[11px] font-medium">
+            {initials}
+          </span>
+        </div>
+      </div>
 
-        {/* Mobile slide-out menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-b border-border px-5 py-4 flex flex-col gap-1 bg-white">
-            {navItems.map((item) => {
-              const active = isNavActive(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 py-2.5 px-2 ${
-                    active ? "text-dark font-medium" : "text-gray"
-                  }`}
-                >
-                  <item.icon size={18} />
-                  <span className="font-heading text-sm">{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Desktop Sidebar */}
-        <aside className="hidden md:flex w-60 shrink-0 border-r border-border flex-col justify-between p-8">
-          {/* Top */}
-          <div className="flex flex-col gap-12">
-            {/* Logo */}
-            <div className="flex items-center gap-3">
-              <div className="w-7 h-7 bg-brand" />
-              <span className="font-heading text-lg font-semibold text-dark">
-                Bouncer
-              </span>
-            </div>
-
-            {/* Nav */}
-            <nav className="flex flex-col">
-              {navItems.map((item) => {
-                const isActive = isNavActive(item.href);
-
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="flex items-center gap-3 py-3"
-                  >
-                    <div
-                      className={`w-1.5 h-1.5 rounded-none ${isActive ? "bg-brand" : "opacity-0"}`}
-                    />
-                    <span
-                      className={`font-heading text-sm ${
-                        isActive
-                          ? "font-medium text-dark"
-                          : "font-normal text-gray"
-                      }`}
-                    >
-                      {item.label}
-                    </span>
-                  </Link>
-                );
-              })}
-            </nav>
-          </div>
-
-          {/* Bottom */}
-          <div className="flex flex-col gap-6">
-            {/* Upgrade box */}
-            <div className="bg-surface p-5 flex flex-col gap-4">
-              <span className="font-heading text-[13px] font-semibold text-dark">
-                Upgrade to Growth
-              </span>
-              <p className="text-xs text-gray leading-relaxed">
-                Unlock unlimited CRM integrations and 15K validations.
-              </p>
-              <button className="bg-brand text-white font-heading text-xs font-medium px-4 py-2.5 cursor-pointer hover:bg-brand/90 transition-colors w-full">
-                Upgrade
-              </button>
-            </div>
-
-            {/* User */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-dark flex items-center justify-center">
-                  <span className="text-white font-heading text-[13px] font-medium">
-                    SM
-                  </span>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="font-heading text-[13px] font-medium text-dark">
-                    Sara Martinez
-                  </span>
-                  <span className="text-xs text-gray">Starter Plan</span>
-                </div>
-              </div>
-              <HelpCircle size={18} className="text-[#CCCCCC]" />
-            </div>
-          </div>
-        </aside>
-
-        {/* Main content */}
-        <main className="flex-1 overflow-y-auto p-5 md:p-10 flex flex-col gap-8 md:gap-12 pb-20 md:pb-10">
-          {children}
-        </main>
-
-        {/* Mobile bottom nav */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-border flex items-center justify-around py-2.5 pb-5 z-50">
-          {mobileBottomNav.map((item) => {
+      {/* Mobile slide-out menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-b border-border px-5 py-4 flex flex-col gap-1 bg-white">
+          {navItems.map((item) => {
             const active = isNavActive(item.href);
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-col items-center gap-1 px-3 ${
-                  active ? "text-brand" : "text-gray"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 py-2.5 px-2 ${
+                  active ? "text-dark font-medium" : "text-gray"
                 }`}
               >
-                <item.icon size={20} />
-                <span className="text-[10px] font-heading font-medium">
-                  {item.label}
-                </span>
+                <item.icon size={18} />
+                <span className="font-heading text-sm">{item.label}</span>
               </Link>
             );
           })}
-        </nav>
-      </div>
-    </ToastProvider>
+        </div>
+      )}
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex w-60 shrink-0 border-r border-border flex-col justify-between p-8">
+        {/* Top */}
+        <div className="flex flex-col gap-12">
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 bg-brand" />
+            <span className="font-heading text-lg font-semibold text-dark">
+              Bouncer
+            </span>
+          </div>
+
+          {/* Nav */}
+          <nav className="flex flex-col">
+            {navItems.map((item) => {
+              const isActive = isNavActive(item.href);
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="flex items-center gap-3 py-3"
+                >
+                  <div
+                    className={`w-1.5 h-1.5 rounded-none ${isActive ? "bg-brand" : "opacity-0"}`}
+                  />
+                  <span
+                    className={`font-heading text-sm ${
+                      isActive
+                        ? "font-medium text-dark"
+                        : "font-normal text-gray"
+                    }`}
+                  >
+                    {item.label}
+                  </span>
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Bottom */}
+        <div className="flex flex-col gap-6">
+          {/* Upgrade box */}
+          <div className="bg-surface p-5 flex flex-col gap-4">
+            <span className="font-heading text-[13px] font-semibold text-dark">
+              Upgrade to Growth
+            </span>
+            <p className="text-xs text-gray leading-relaxed">
+              Unlock unlimited CRM integrations and 15K validations.
+            </p>
+            <button className="bg-brand text-white font-heading text-xs font-medium px-4 py-2.5 cursor-pointer hover:bg-brand/90 transition-colors w-full">
+              Upgrade
+            </button>
+          </div>
+
+          {/* User */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-dark flex items-center justify-center">
+                <span className="text-white font-heading text-[13px] font-medium">
+                  {initials}
+                </span>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="font-heading text-[13px] font-medium text-dark">
+                  {displayName}
+                </span>
+                <span className="text-xs text-gray">{planLabel}</span>
+              </div>
+            </div>
+            <HelpCircle size={18} className="text-[#CCCCCC]" />
+          </div>
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <main className="flex-1 overflow-y-auto p-5 md:p-10 flex flex-col gap-8 md:gap-12 pb-20 md:pb-10">
+        {children}
+      </main>
+
+      {/* Mobile bottom nav */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-border flex items-center justify-around py-2.5 pb-5 z-50">
+        {mobileBottomNav.map((item) => {
+          const active = isNavActive(item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex flex-col items-center gap-1 px-3 ${
+                active ? "text-brand" : "text-gray"
+              }`}
+            >
+              <item.icon size={20} />
+              <span className="text-[10px] font-heading font-medium">
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
+  );
+}
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <ValidationProvider>
+      <ToastProvider>
+        <DashboardLayoutInner>{children}</DashboardLayoutInner>
+      </ToastProvider>
+    </ValidationProvider>
   );
 }

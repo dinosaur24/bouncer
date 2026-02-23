@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { X, Mail, Phone, Globe, Building2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { X, Mail, Phone, Globe, Building2, Loader2 } from "lucide-react";
 
 interface SignalDetail {
   name: string;
@@ -21,6 +21,7 @@ export interface ValidationDetail {
   phone: string;
   company: string;
   signals: SignalDetail[];
+  overridden?: boolean;
 }
 
 interface DrawerProps {
@@ -48,6 +49,8 @@ export function ValidationDrawer({
   validation,
   onOverride,
 }: DrawerProps) {
+  const [isOverriding, setIsOverriding] = useState(false);
+
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
@@ -70,6 +73,13 @@ export function ValidationDrawer({
   if (!open || !validation) return null;
 
   const colors = statusColors[validation.status];
+
+  const handleOverride = async () => {
+    if (!onOverride) return;
+    setIsOverriding(true);
+    await onOverride(validation.email);
+    setIsOverriding(false);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
@@ -107,6 +117,11 @@ export function ValidationDrawer({
               >
                 {validation.status}
               </span>
+              {validation.overridden && (
+                <span className="px-2.5 py-0.5 text-xs font-medium bg-[#F0FDF4] text-[#22C55E]">
+                  Overridden
+                </span>
+              )}
               <span
                 className={`font-heading text-2xl font-bold ${colors.text}`}
               >
@@ -189,12 +204,14 @@ export function ValidationDrawer({
 
         {/* Footer actions */}
         <div className="p-6 border-t border-border flex gap-3">
-          {validation.status === "Borderline" && onOverride && (
+          {(validation.status === "Borderline" || validation.status === "Rejected") && onOverride && !validation.overridden && (
             <button
-              onClick={() => onOverride(validation.email)}
-              className="bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-dark/90 transition-colors"
+              onClick={handleOverride}
+              disabled={isOverriding}
+              className="bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-dark/90 transition-colors flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Override: Accept
+              {isOverriding && <Loader2 size={14} className="animate-spin" />}
+              {isOverriding ? "Overriding..." : "Override: Accept"}
             </button>
           )}
           <button

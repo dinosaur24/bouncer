@@ -8,200 +8,102 @@ import {
   ValidationDrawer,
   type ValidationDetail,
 } from "@/components/ValidationDrawer";
+import { useValidations } from "@/contexts/ValidationContext";
+import type { Validation, SignalResult } from "@/lib/types";
 
-const metrics = [
-  {
-    label: "Validations today",
-    value: "1,247",
-    change: "+12.5% vs yesterday",
-  },
-  {
-    label: "This month",
-    value: "18,432",
-    change: "+8.2% vs last month",
-  },
-  {
-    label: "Pass rate",
-    value: "84.6%",
-    change: "+2.1% improvement",
-  },
-  {
-    label: "Avg score",
-    value: "72.3",
-    change: "+3.4 vs last week",
-  },
-];
+const signalIconMap: Record<string, typeof Mail> = {
+  email: Mail,
+  phone: Phone,
+  ip: Globe,
+  company: Building2,
+};
 
-const chartData = [
-  { day: "Mon", passed: 120, borderline: 30, rejected: 20 },
-  { day: "Tue", passed: 150, borderline: 25, rejected: 15 },
-  { day: "Wed", passed: 100, borderline: 40, rejected: 30 },
-  { day: "Thu", passed: 170, borderline: 20, rejected: 10 },
-  { day: "Fri", passed: 140, borderline: 35, rejected: 25 },
-  { day: "Sat", passed: 80, borderline: 15, rejected: 10 },
-  { day: "Sun", passed: 60, borderline: 10, rejected: 8 },
-];
+function formatTimeAgo(timestamp: string): string {
+  const now = new Date();
+  const then = new Date(timestamp);
+  const diffMs = now.getTime() - then.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return 'Just now';
+  if (diffMin < 60) return `${diffMin} min ago`;
+  const diffHours = Math.floor(diffMin / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}d ago`;
+}
 
-const maxTotal = Math.max(
-  ...chartData.map((d) => d.passed + d.borderline + d.rejected)
-);
+function mapSignalsToDrawer(signals: SignalResult[]) {
+  return signals.map(s => ({
+    name: s.name,
+    icon: signalIconMap[s.type] || Mail,
+    status: s.status,
+    label: s.label,
+    detail: s.detail,
+  }));
+}
 
-const recentValidations = [
-  {
-    color: "#22C55E",
-    email: "sarah@techcorp.io",
-    meta: "2 min ago · Email + Phone",
-    score: 92,
-    scoreBg: "#F0FDF4",
-    scoreColor: "#22C55E",
-  },
-  {
-    color: "#F59E0B",
-    email: "j.miller@startup.co",
-    meta: "5 min ago · Email only",
-    score: 54,
-    scoreBg: "#FFFBEB",
-    scoreColor: "#F59E0B",
-  },
-  {
-    color: "#E42313",
-    email: "test123@mailinator.com",
-    meta: "8 min ago · All signals",
-    score: 18,
-    scoreBg: "#FEF2F2",
-    scoreColor: "#E42313",
-  },
-  {
-    color: "#22C55E",
-    email: "anna.chen@enterprise.com",
-    meta: "12 min ago · Email + IP",
-    score: 87,
-    scoreBg: "#F0FDF4",
-    scoreColor: "#22C55E",
-  },
-  {
-    color: "#22C55E",
-    email: "mark@agency.io",
-    meta: "15 min ago · Phone + Domain",
-    score: 78,
-    scoreBg: "#F0FDF4",
-    scoreColor: "#22C55E",
-  },
-];
+function mapValidationToDetail(v: Validation): ValidationDetail {
+  return {
+    email: v.email,
+    status: v.status,
+    score: v.score,
+    source: v.source,
+    time: formatTimeAgo(v.timestamp),
+    ip: v.ip,
+    phone: v.phone,
+    company: v.company,
+    signals: mapSignalsToDrawer(v.signals),
+    overridden: v.overridden,
+  };
+}
 
-const validationDetails: Record<string, ValidationDetail> = {
-  "sarah@techcorp.io": {
-    email: "sarah@techcorp.io",
-    status: "Passed",
-    score: 92,
-    source: "Contact Form",
-    time: "2 min ago",
-    ip: "192.168.1.42",
-    phone: "+1 (555) 234-5678",
-    company: "TechCorp Inc.",
-    signals: [
-      { name: "Email", icon: Mail, status: "pass", label: "Valid business email", detail: "Corporate domain verified" },
-      { name: "Phone", icon: Phone, status: "pass", label: "Valid US mobile", detail: "Number format confirmed" },
-      { name: "IP", icon: Globe, status: "pass", label: "Clean residential IP", detail: "No suspicious activity" },
-      { name: "Domain", icon: Building2, status: "pass", label: "Established company domain", detail: "Domain registered 8+ years" },
-    ],
-  },
-  "j.miller@startup.co": {
-    email: "j.miller@startup.co",
-    status: "Borderline",
-    score: 54,
-    source: "API",
-    time: "5 min ago",
-    ip: "10.0.0.88",
-    phone: "+1 (555) 876-5432",
-    company: "Startup Co.",
-    signals: [
-      { name: "Email", icon: Mail, status: "warn", label: "Recently registered domain", detail: "Domain created within last year" },
-      { name: "Phone", icon: Phone, status: "pass", label: "Valid number", detail: "Number format confirmed" },
-      { name: "IP", icon: Globe, status: "warn", label: "VPN detected", detail: "Connection routed through VPN" },
-      { name: "Domain", icon: Building2, status: "warn", label: "Domain age < 6 months", detail: "New domain registration" },
-    ],
-  },
-  "test123@mailinator.com": {
-    email: "test123@mailinator.com",
-    status: "Rejected",
-    score: 18,
-    source: "Newsletter",
-    time: "8 min ago",
-    ip: "203.0.113.42",
-    phone: "+44 000 000",
-    company: "Unknown",
-    signals: [
-      { name: "Email", icon: Mail, status: "fail", label: "Disposable email provider", detail: "Known throwaway domain" },
-      { name: "Phone", icon: Phone, status: "fail", label: "Invalid number format", detail: "Number does not match any region" },
-      { name: "IP", icon: Globe, status: "fail", label: "Known spam IP", detail: "Listed on multiple blocklists" },
-      { name: "Domain", icon: Building2, status: "fail", label: "Blacklisted domain", detail: "Domain flagged for abuse" },
-    ],
-  },
-  "anna.chen@enterprise.com": {
-    email: "anna.chen@enterprise.com",
-    status: "Passed",
-    score: 87,
-    source: "Demo Request",
-    time: "12 min ago",
-    ip: "172.16.0.5",
-    phone: "+1 (555) 345-6789",
-    company: "Enterprise Inc.",
-    signals: [
-      { name: "Email", icon: Mail, status: "pass", label: "Valid corporate email", detail: "Enterprise email domain" },
-      { name: "Phone", icon: Phone, status: "pass", label: "Valid number", detail: "Number format confirmed" },
-      { name: "IP", icon: Globe, status: "pass", label: "Enterprise IP range", detail: "Corporate network detected" },
-      { name: "Domain", icon: Building2, status: "pass", label: "Fortune 500 company", detail: "Top-tier enterprise domain" },
-    ],
-  },
-  "mark@agency.io": {
-    email: "mark@agency.io",
-    status: "Passed",
-    score: 78,
-    source: "Contact Form",
-    time: "15 min ago",
-    ip: "192.168.2.10",
-    phone: "+1 (555) 987-6543",
-    company: "Agency.io",
-    signals: [
-      { name: "Email", icon: Mail, status: "pass", label: "Valid email", detail: "Email format verified" },
-      { name: "Phone", icon: Phone, status: "pass", label: "Valid mobile", detail: "Mobile number confirmed" },
-      { name: "IP", icon: Globe, status: "warn", label: "Shared office IP", detail: "Multiple users on same IP" },
-      { name: "Domain", icon: Building2, status: "pass", label: "Verified agency", detail: "Established agency domain" },
-    ],
-  },
+const statusColors: Record<string, { dot: string; scoreBg: string; scoreColor: string }> = {
+  Passed: { dot: "#22C55E", scoreBg: "#F0FDF4", scoreColor: "#22C55E" },
+  Borderline: { dot: "#EAB308", scoreBg: "#FFFBEB", scoreColor: "#F59E0B" },
+  Rejected: { dot: "#EF4444", scoreBg: "#FEF2F2", scoreColor: "#E42313" },
 };
 
 export default function DashboardPage() {
+  const { stats, chartData, validations, isLoading, overrideValidation, exportCSV } = useValidations();
   const { addToast } = useToast();
   const [activeDateRange, setActiveDateRange] = useState("Last 30 days");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedValidation, setSelectedValidation] =
     useState<ValidationDetail | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const recentValidations = validations.slice(0, 5);
+
+  const metrics = [
+    { label: 'Validations today', value: stats.validationsToday.toLocaleString(), change: `${stats.todayChange > 0 ? '+' : ''}${stats.todayChange}%` },
+    { label: 'This month', value: stats.validationsMonth.toLocaleString(), change: `${stats.monthChange > 0 ? '+' : ''}${stats.monthChange}%` },
+    { label: 'Pass rate', value: `${stats.passRate}%`, change: `${stats.passRateChange > 0 ? '+' : ''}${stats.passRateChange}%` },
+    { label: 'Avg. score', value: stats.avgScore.toString(), change: `${stats.avgScoreChange > 0 ? '+' : ''}${stats.avgScoreChange}%` },
+  ];
+
+  const maxTotal = Math.max(
+    ...chartData.map((d) => d.passed + d.borderline + d.rejected),
+    1
+  );
 
   const dateRanges = ["Last 30 days", "Last 7 days", "Custom"];
 
-  const handleOverride = (email: string) => {
-    addToast("Lead override accepted — syncing to CRM");
-    setDrawerOpen(false);
+  const handleOverride = async (email: string) => {
+    if (selectedId) {
+      await overrideValidation(selectedId);
+      addToast("Lead override accepted — syncing to CRM");
+      setDrawerOpen(false);
+    }
   };
 
   const handleExport = () => {
-    const headers = ["Email", "Score", "Meta"];
-    const rows = recentValidations.map((v) =>
-      [v.email, v.score, v.meta].join(",")
-    );
-    const csv = [headers.join(","), ...rows].join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "validations.csv";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    exportCSV();
     addToast("Validation data exported");
+  };
+
+  const handleRowClick = (v: Validation) => {
+    setSelectedId(v.id);
+    setSelectedValidation(mapValidationToDetail(v));
+    setDrawerOpen(true);
   };
 
   return (
@@ -313,9 +215,9 @@ export default function DashboardPage() {
             {chartData.map((bar) => {
               const total = bar.passed + bar.borderline + bar.rejected;
               const heightPct = (total / maxTotal) * 100;
-              const passedPct = (bar.passed / total) * 100;
-              const borderlinePct = (bar.borderline / total) * 100;
-              const rejectedPct = (bar.rejected / total) * 100;
+              const passedPct = total > 0 ? (bar.passed / total) * 100 : 0;
+              const borderlinePct = total > 0 ? (bar.borderline / total) * 100 : 0;
+              const rejectedPct = total > 0 ? (bar.rejected / total) * 100 : 0;
 
               return (
                 <div
@@ -369,38 +271,40 @@ export default function DashboardPage() {
 
           {/* Validation rows */}
           <div className="flex flex-col gap-4">
-            {recentValidations.map((item) => (
-              <div
-                key={item.email}
-                onClick={() => {
-                  setSelectedValidation(validationDetails[item.email]);
-                  setDrawerOpen(true);
-                }}
-                className="flex items-center justify-between cursor-pointer hover:bg-surface transition-colors p-2 -mx-2 rounded-sm"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-2 h-2 rounded-full shrink-0"
-                    style={{ backgroundColor: item.color }}
-                  />
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-sm font-medium text-dark">
-                      {item.email}
-                    </span>
-                    <span className="text-[12px] text-gray">{item.meta}</span>
-                  </div>
-                </div>
-                <span
-                  className="text-[13px] font-semibold px-3 py-1 rounded-sm"
-                  style={{
-                    backgroundColor: item.scoreBg,
-                    color: item.scoreColor,
-                  }}
+            {recentValidations.map((item) => {
+              const colors = statusColors[item.status] || statusColors.Passed;
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => handleRowClick(item)}
+                  className="flex items-center justify-between cursor-pointer hover:bg-surface transition-colors p-2 -mx-2 rounded-sm"
                 >
-                  {item.score}
-                </span>
-              </div>
-            ))}
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: colors.dot }}
+                    />
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-sm font-medium text-dark">
+                        {item.email}
+                      </span>
+                      <span className="text-[12px] text-gray">
+                        {formatTimeAgo(item.timestamp)} · {item.source}
+                      </span>
+                    </div>
+                  </div>
+                  <span
+                    className="text-[13px] font-semibold px-3 py-1 rounded-sm"
+                    style={{
+                      backgroundColor: colors.scoreBg,
+                      color: colors.scoreColor,
+                    }}
+                  >
+                    {item.score}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
