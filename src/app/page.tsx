@@ -25,7 +25,7 @@ function ButtonPrimary({
   className?: string;
   href?: string;
 }) {
-  const classes = `bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-dark/90 transition-colors inline-block text-center ${className}`;
+  const classes = `bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 rounded-lg cursor-pointer hover:bg-dark/90 transition-colors inline-block text-center ${className}`;
   if (href) {
     return (
       <Link href={href} className={classes}>
@@ -51,7 +51,7 @@ function ButtonSecondary({
   onClick?: () => void;
   href?: string;
 }) {
-  const classes = `border border-border font-heading text-[13px] font-medium text-dark px-5 py-2.5 cursor-pointer hover:bg-surface transition-colors inline-block text-center ${className}`;
+  const classes = `border border-border rounded-lg font-heading text-[13px] font-medium text-dark px-5 py-2.5 cursor-pointer hover:bg-surface transition-colors inline-block text-center ${className}`;
   if (href) {
     return (
       <Link href={href} className={classes}>
@@ -78,7 +78,7 @@ function ButtonCTA({
   className?: string;
   href?: string;
 }) {
-  const classes = `bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-brand/90 transition-colors inline-block text-center ${className}`;
+  const classes = `bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 rounded-lg cursor-pointer hover:bg-brand/90 transition-colors inline-block text-center ${className}`;
   if (href) {
     return (
       <Link href={href} className={classes}>
@@ -97,7 +97,7 @@ function ButtonCTA({
 
 function IconBox({ icon: Icon }: { icon: React.ElementType }) {
   return (
-    <div className="w-11 h-11 border border-border flex items-center justify-center">
+    <div className="w-11 h-11 border border-border rounded-lg flex items-center justify-center">
       <Icon size={18} className="text-gray" />
     </div>
   );
@@ -166,7 +166,7 @@ function Hero() {
       {/* Right — Form Mockup + Score Panel */}
       <div className="w-full md:w-[480px] flex flex-col">
         {/* Form */}
-        <div className="bg-white border border-border p-5 md:p-6 flex flex-col gap-3.5 md:gap-4">
+        <div className="bg-white border border-border rounded-t-lg p-5 md:p-6 flex flex-col gap-3.5 md:gap-4">
           <h3 className="font-heading text-base md:text-lg font-semibold text-dark">
             Contact Us
           </h3>
@@ -178,7 +178,7 @@ function Hero() {
               <label className="text-xs md:text-[13px] text-gray">
                 {field.label}
               </label>
-              <div className="h-9 md:h-10 border border-border px-2.5 md:px-3 flex items-center">
+              <div className="h-9 md:h-10 border border-border rounded-lg px-2.5 md:px-3 flex items-center">
                 <span className="text-[13px] text-dark md:text-light-gray">
                   <span className="md:hidden">{field.placeholder}</span>
                   <span className="hidden md:inline">{field.desktopPlaceholder}</span>
@@ -189,7 +189,7 @@ function Hero() {
           {/* Company field — desktop only */}
           <div className="hidden md:flex flex-col gap-1.5">
             <label className="text-[13px] text-gray">Company</label>
-            <div className="h-10 border border-border px-3 flex items-center">
+            <div className="h-10 border border-border rounded-lg px-3 flex items-center">
               <span className="text-[13px] text-light-gray">Acme Inc.</span>
             </div>
           </div>
@@ -197,7 +197,7 @@ function Hero() {
         </div>
 
         {/* Score Panel */}
-        <div className="bg-surface border-x border-b border-border p-5 md:p-6 flex flex-col gap-3.5 md:gap-5">
+        <div className="bg-surface border-x border-b border-border rounded-b-lg p-5 md:p-6 flex flex-col gap-3.5 md:gap-5">
           <div className="flex items-center justify-between">
             <span className="font-heading text-[13px] md:text-sm font-medium text-dark">
               Lead Quality Score
@@ -206,8 +206,8 @@ function Hero() {
               94/100
             </span>
           </div>
-          <div className="w-full h-1.5 md:h-2 bg-border">
-            <div className="h-full bg-brand" style={{ width: "94%" }} />
+          <div className="w-full h-1.5 md:h-2 bg-border rounded-lg">
+            <div className="h-full bg-brand rounded-lg" style={{ width: "94%" }} />
           </div>
           <div className="flex flex-col gap-2">
             {[
@@ -244,7 +244,7 @@ function DashboardShowcase() {
     >
       <div className="flex items-center justify-center">
         <div
-          className="w-[1280px] max-w-full h-[800px] border border-[#D0D0D0] bg-white overflow-hidden"
+          className="w-[1280px] max-w-full h-[800px] border border-[#D0D0D0] bg-white overflow-hidden rounded-lg"
           style={{
             boxShadow:
               "0 24px 64px -4px rgba(0,0,0,0.2), 0 8px 24px -2px rgba(0,0,0,0.125)",
@@ -301,7 +301,7 @@ function HowItWorks() {
         {steps.map((step) => (
           <div
             key={step.num}
-            className="border border-border p-5 md:p-7 flex flex-col gap-3.5 md:gap-5"
+            className="border border-border rounded-lg p-5 md:p-7 flex flex-col gap-3.5 md:gap-5"
           >
             <span className="font-heading text-[28px] md:text-4xl font-semibold text-brand">
               {step.num}
@@ -375,7 +375,7 @@ function SignalBreakdown() {
         {signals.map((signal) => (
           <div
             key={signal.title}
-            className="bg-white border border-border p-5 md:p-7 flex flex-col gap-3 md:gap-4"
+            className="bg-white border border-border rounded-lg p-5 md:p-7 flex flex-col gap-3 md:gap-4"
           >
             <IconBox icon={signal.icon} />
             <h3 className="font-heading text-base md:text-lg font-semibold text-dark">
@@ -467,14 +467,14 @@ function Pricing() {
             key={tier.name}
             className={`p-5 md:p-7 flex flex-col gap-5 md:gap-6 md:justify-between md:h-full ${
               tier.featured
-                ? "border-t-[3px] border-t-brand border-x border-b border-border"
-                : "border border-border"
+                ? "border-t-[3px] border-t-brand border-x border-b border-border rounded-lg"
+                : "border border-border rounded-lg"
             }`}
           >
             <div className="flex flex-col gap-5 md:gap-6">
               {/* POPULAR badge — mobile: above name, desktop: inline */}
               {tier.featured && (
-                <span className="md:hidden bg-brand text-white text-[10px] font-semibold px-2 py-0.5 self-start flex items-center justify-center">
+                <span className="md:hidden bg-brand text-white text-[10px] font-semibold px-2 py-0.5 self-start flex items-center justify-center rounded-lg">
                   POPULAR
                 </span>
               )}
@@ -484,7 +484,7 @@ function Pricing() {
                     {tier.name}
                   </span>
                   {tier.featured && (
-                    <span className="hidden md:flex bg-brand text-white text-[10px] font-semibold px-1.5 py-0.5 items-center justify-center">
+                    <span className="hidden md:flex bg-brand text-white text-[10px] font-semibold px-1.5 py-0.5 items-center justify-center rounded-lg">
                       POPULAR
                     </span>
                   )}

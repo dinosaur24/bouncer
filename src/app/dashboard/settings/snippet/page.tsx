@@ -117,7 +117,7 @@ export default function SnippetPage() {
         </div>
 
         {/* Code Block */}
-        <div className="bg-dark p-5 relative">
+        <div className="bg-dark p-5 relative rounded-lg">
           <pre className="text-[13px] font-mono text-[#4ADE80] overflow-x-auto whitespace-pre">
             {snippets[codeTab]}
           </pre>
@@ -146,8 +146,8 @@ export default function SnippetPage() {
             testStatus === 'success'
               ? "text-green"
               : testStatus === 'testing'
-                ? "border border-border text-gray cursor-not-allowed"
-                : "border border-border text-dark hover:bg-surface"
+                ? "border border-border rounded-lg text-gray cursor-not-allowed"
+                : "border border-border rounded-lg text-dark hover:bg-surface"
           }`}
         >
           {testStatus === 'testing' ? (

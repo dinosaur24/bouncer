@@ -47,7 +47,7 @@ export function Footer() {
         {/* Brand */}
         <div className="flex items-center gap-2.5 md:flex-col md:items-start md:gap-3 md:w-[300px]">
           <div className="flex items-center gap-2.5 md:gap-3">
-            <div className="w-[18px] h-[18px] md:w-5 md:h-5 bg-brand" />
+            <div className="w-[18px] h-[18px] md:w-5 md:h-5 bg-brand rounded-md" />
             <span className="font-heading text-base md:text-lg font-semibold text-dark">
               Bouncer
             </span>

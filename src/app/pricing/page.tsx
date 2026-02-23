@@ -147,23 +147,23 @@ export default function PricingPage() {
         </h1>
 
         <div className="flex items-center gap-3">
-          <div className="border border-border inline-flex">
+          <div className="flex border border-border rounded-lg overflow-hidden">
             <button
               onClick={() => setBilling("monthly")}
-              className={`font-heading text-[13px] font-medium px-4 py-2 cursor-pointer transition-colors ${
+              className={`px-4 py-2.5 text-xs font-medium cursor-pointer transition-colors ${
                 billing === "monthly"
                   ? "bg-dark text-white"
-                  : "text-gray hover:text-dark"
+                  : "bg-white text-gray hover:bg-surface"
               }`}
             >
               Monthly
             </button>
             <button
               onClick={() => setBilling("annual")}
-              className={`font-heading text-[13px] font-medium px-4 py-2 cursor-pointer transition-colors ${
+              className={`px-4 py-2.5 text-xs font-medium cursor-pointer transition-colors ${
                 billing === "annual"
                   ? "bg-dark text-white"
-                  : "text-gray hover:text-dark"
+                  : "bg-white text-gray hover:bg-surface"
               }`}
             >
               Annual
@@ -171,7 +171,7 @@ export default function PricingPage() {
           </div>
 
           {billing === "annual" && (
-            <span className="bg-brand text-white text-[11px] font-heading font-medium px-2 py-0.5">
+            <span className="bg-brand text-white text-[11px] font-heading font-medium px-2 py-0.5 rounded-lg">
               Save 17%
             </span>
           )}
@@ -183,7 +183,7 @@ export default function PricingPage() {
         {plans.map((plan) => (
           <div
             key={plan.name}
-            className={`border border-border p-5 md:p-7 flex flex-col gap-5 ${
+            className={`border border-border rounded-lg p-5 md:p-7 flex flex-col gap-5 ${
               plan.popular ? "border-t-[3px] border-t-brand" : ""
             }`}
           >
@@ -193,7 +193,7 @@ export default function PricingPage() {
                 {plan.name}
               </span>
               {plan.popular && (
-                <span className="bg-brand text-white text-[10px] font-heading font-medium px-1.5 py-0.5 uppercase tracking-wide">
+                <span className="bg-brand text-white text-[10px] font-heading font-medium px-1.5 py-0.5 uppercase tracking-wide rounded-lg">
                   Popular
                 </span>
               )}
@@ -226,14 +226,14 @@ export default function PricingPage() {
             {plan.ctaStyle === "brand" ? (
               <Link
                 href={plan.ctaHref}
-                className="bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 text-center hover:bg-brand/90 transition-colors"
+                className="bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 rounded-lg text-center hover:bg-brand/90 transition-colors"
               >
                 {plan.cta}
               </Link>
             ) : (
               <Link
                 href={plan.ctaHref}
-                className="border border-border text-dark font-heading text-[13px] font-medium px-5 py-2.5 text-center hover:bg-surface transition-colors"
+                className="border border-border rounded-lg text-dark font-heading text-[13px] font-medium px-5 py-2.5 text-center hover:bg-surface transition-colors"
               >
                 {plan.cta}
               </Link>
@@ -327,7 +327,7 @@ export default function PricingPage() {
         </p>
         <Link
           href="/signup"
-          className="bg-brand text-white font-heading text-[13px] font-medium px-6 py-3 mt-2 hover:bg-brand/90 transition-colors inline-block"
+          className="bg-brand text-white font-heading text-[13px] font-medium px-6 py-3 mt-2 rounded-lg hover:bg-brand/90 transition-colors inline-block"
         >
           Start for free
         </Link>

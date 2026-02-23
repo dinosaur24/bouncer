@@ -23,7 +23,7 @@ export default function CompanyProfilePage() {
   const isValid = companyName.trim() !== "" && website.trim() !== "";
 
   const inputClasses =
-    "w-full border border-border px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors";
+    "w-full border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors";
 
   return (
     <div>
@@ -113,7 +113,7 @@ export default function CompanyProfilePage() {
         <button
           type="submit"
           disabled={!isValid || isLoading}
-          className="mt-6 w-full bg-dark text-white font-heading text-[13px] font-medium py-2.5 text-center block disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="mt-6 w-full bg-dark text-white font-heading text-[13px] font-medium py-2.5 text-center block disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 rounded-lg"
         >
           {isLoading ? (
             <>

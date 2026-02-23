@@ -23,7 +23,7 @@ export default function AnalyticsPage() {
   return (
     <>
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="flex flex-col gap-1">
           <h1 className="font-heading text-[28px] font-bold tracking-tight leading-tight">
             Analytics
@@ -33,23 +33,23 @@ export default function AnalyticsPage() {
           </p>
         </div>
 
-        <div className="flex items-center">
-          <button className="bg-dark text-white font-heading text-[13px] font-medium px-4 py-2 cursor-pointer">
+        <div className="flex border border-border rounded-lg overflow-hidden">
+          <button className="px-4 py-2.5 text-xs font-medium cursor-pointer transition-colors bg-dark text-white">
             Last 30 days
           </button>
-          <button className="border border-border font-heading text-[13px] font-medium px-4 py-2 text-dark cursor-pointer bg-white">
+          <button className="px-4 py-2.5 text-xs font-medium cursor-pointer transition-colors bg-white text-gray hover:bg-surface">
             Last 7 days
           </button>
-          <button className="border border-border border-l-0 font-heading text-[13px] font-medium px-4 py-2 text-dark cursor-pointer bg-white">
+          <button className="px-4 py-2.5 text-xs font-medium cursor-pointer transition-colors bg-white text-gray hover:bg-surface">
             Custom
           </button>
         </div>
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* Total validated */}
-        <div className="border border-border p-5">
+        <div className="border border-border rounded-lg p-5">
           <span className="text-[11px] text-[#999999] uppercase tracking-wider">
             Total validated
           </span>
@@ -60,7 +60,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Passed */}
-        <div className="border border-border p-5">
+        <div className="border border-border rounded-lg p-5">
           <span className="text-[11px] text-[#999999] uppercase tracking-wider">
             Passed
           </span>
@@ -71,7 +71,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Borderline */}
-        <div className="border border-border p-5">
+        <div className="border border-border rounded-lg p-5">
           <span className="text-[11px] text-[#999999] uppercase tracking-wider">
             Borderline
           </span>
@@ -82,7 +82,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Rejected */}
-        <div className="border border-border p-5">
+        <div className="border border-border rounded-lg p-5">
           <span className="text-[11px] text-[#999999] uppercase tracking-wider">
             Rejected
           </span>
@@ -94,15 +94,15 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Bottom Row */}
-      <div className="flex gap-6 flex-1 min-h-0">
+      <div className="flex flex-col md:flex-row gap-6 flex-1 min-h-0">
         {/* Volume Chart */}
-        <div className="flex-1 border border-border p-7 flex flex-col">
+        <div className="flex-1 border border-border rounded-lg p-5 md:p-7 flex flex-col">
           {/* Chart Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-8">
             <h2 className="font-heading text-lg font-semibold">
               Validation Volume
             </h2>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-wrap">
               <div className="flex items-center gap-2">
                 <div
                   className="w-2.5 h-2.5 rounded-full"
@@ -172,7 +172,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Rejection Reasons */}
-        <div className="w-[380px] border border-border p-7 flex flex-col">
+        <div className="w-full md:w-[380px] border border-border rounded-lg p-5 md:p-7 flex flex-col">
           <h2 className="font-heading text-base font-semibold mb-6">
             Rejection Reasons
           </h2>

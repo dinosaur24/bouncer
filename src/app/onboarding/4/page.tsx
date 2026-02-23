@@ -5,28 +5,14 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 
-const thresholds = [
-  {
-    label: "Passed",
-    range: "70 — 100",
-    color: "#22C55E",
-    widthPercent: 30,
-  },
-  {
-    label: "Borderline",
-    range: "40 — 69",
-    color: "#F59E0B",
-    widthPercent: 30,
-  },
-  {
-    label: "Rejected",
-    range: "0 — 39",
-    color: "#E42313",
-    widthPercent: 40,
-  },
-];
+function sliderBg(color: string, value: number, min: number, max: number) {
+  const pct = ((value - min) / (max - min)) * 100;
+  return `linear-gradient(to right, ${color} ${pct}%, #E5E5E5 ${pct}%)`;
+}
 
 export default function SetThresholdsPage() {
+  const [passedMin, setPassedMin] = useState(70);
+  const [borderlineMin, setBorderlineMin] = useState(40);
   const [blockRejected, setBlockRejected] = useState(true);
 
   const { saveThresholds, completeOnboarding, isLoading } = useOnboarding();
@@ -34,10 +20,10 @@ export default function SetThresholdsPage() {
 
   const handleFinish = async () => {
     await saveThresholds({
-      passedMin: 70,
-      borderlineMin: 40,
+      passedMin,
+      borderlineMin,
       blockRejected,
-      rejectionMessage: '',
+      rejectionMessage: "",
     });
     await completeOnboarding();
     router.push("/dashboard");
@@ -52,35 +38,69 @@ export default function SetThresholdsPage() {
         Define what qualifies as a Passed, Borderline, or Rejected lead.
       </p>
 
-      {/* Score ranges */}
       <div className="mt-8 flex flex-col gap-6">
-        {thresholds.map((threshold) => (
-          <div key={threshold.label}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: threshold.color }}
-                />
-                <span className="font-heading text-sm font-medium text-dark">
-                  {threshold.label}
-                </span>
-              </div>
-              <span className="font-heading text-sm text-gray">
-                {threshold.range}
-              </span>
+        {/* Passed */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#22C55E]" />
+              <span className="font-heading text-sm font-medium text-dark">Passed</span>
             </div>
-            <div className="w-full bg-border rounded-full h-2.5">
-              <div
-                className="h-2.5 rounded-full"
-                style={{
-                  backgroundColor: threshold.color,
-                  width: `${threshold.widthPercent}%`,
-                }}
-              />
-            </div>
+            <span className="font-heading text-sm text-gray tabular-nums">
+              {passedMin} &mdash; 100
+            </span>
           </div>
-        ))}
+          <input
+            type="range"
+            min={borderlineMin + 1}
+            max={99}
+            value={passedMin}
+            onChange={(e) => setPassedMin(Number(e.target.value))}
+            className="threshold-slider threshold-slider--green w-full"
+            style={{ background: sliderBg("#22C55E", passedMin, borderlineMin + 1, 99) }}
+          />
+        </div>
+
+        {/* Borderline */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
+              <span className="font-heading text-sm font-medium text-dark">Borderline</span>
+            </div>
+            <span className="font-heading text-sm text-gray tabular-nums">
+              {borderlineMin} &mdash; {passedMin - 1}
+            </span>
+          </div>
+          <input
+            type="range"
+            min={1}
+            max={passedMin - 1}
+            value={borderlineMin}
+            onChange={(e) => setBorderlineMin(Number(e.target.value))}
+            className="threshold-slider threshold-slider--amber w-full"
+            style={{ background: sliderBg("#F59E0B", borderlineMin, 1, passedMin - 1) }}
+          />
+        </div>
+
+        {/* Rejected */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#E42313]" />
+              <span className="font-heading text-sm font-medium text-dark">Rejected</span>
+            </div>
+            <span className="font-heading text-sm text-gray tabular-nums">
+              0 &mdash; {borderlineMin - 1}
+            </span>
+          </div>
+          <div className="w-full bg-[#E5E5E5] rounded-full h-2.5">
+            <div
+              className="h-2.5 rounded-full bg-[#E42313] transition-all"
+              style={{ width: `${borderlineMin}%` }}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Block rejected leads toggle */}
@@ -95,7 +115,7 @@ export default function SetThresholdsPage() {
         </div>
         <button
           onClick={() => setBlockRejected(!blockRejected)}
-          className={`w-[44px] h-[24px] rounded-full relative transition-colors shrink-0 ml-4 ${
+          className={`w-[44px] h-[24px] rounded-full relative transition-colors shrink-0 ml-4 cursor-pointer ${
             blockRejected ? "bg-dark" : "bg-[#D0D0D0]"
           }`}
         >
@@ -107,11 +127,10 @@ export default function SetThresholdsPage() {
         </button>
       </div>
 
-      {/* Finish setup button */}
       <button
         onClick={handleFinish}
         disabled={isLoading}
-        className="mt-8 w-full bg-dark text-white font-heading text-[13px] font-medium py-2.5 text-center block disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        className="mt-8 w-full bg-dark text-white font-heading text-[13px] font-medium py-2.5 text-center disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer rounded-lg"
       >
         {isLoading ? (
           <>

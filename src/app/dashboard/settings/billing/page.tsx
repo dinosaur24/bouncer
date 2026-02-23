@@ -48,14 +48,14 @@ export default function BillingPage() {
       </div>
 
       {/* Current Plan */}
-      <div className="border border-border p-5 md:p-6 flex flex-col gap-4">
+      <div className="border border-border rounded-lg p-5 md:p-6 flex flex-col gap-4">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2.5">
               <h3 className="font-heading text-[15px] font-semibold text-dark">
                 {currentPlan.name} Plan
               </h3>
-              <span className="bg-green/10 text-green text-xs font-medium px-2 py-0.5">
+              <span className="bg-green/10 text-green text-xs font-medium px-2 py-0.5 rounded-lg">
                 Active
               </span>
             </div>
@@ -109,7 +109,7 @@ export default function BillingPage() {
             / {usage.limit >= 999999 ? "Unlimited" : usage.limit.toLocaleString()}
           </span>
         </div>
-        <div className="w-full h-2 bg-surface overflow-hidden">
+        <div className="w-full h-2 bg-surface overflow-hidden rounded-lg">
           <div
             className="h-full bg-brand"
             style={{ width: `${Math.min(usage.percentage, 100)}%` }}
@@ -164,7 +164,7 @@ export default function BillingPage() {
               {invoices.map((inv) => (
                 <div
                   key={inv.id}
-                  className="border border-border p-4 flex justify-between items-center"
+                  className="border border-border rounded-lg p-4 flex justify-between items-center"
                 >
                   <div className="flex flex-col gap-0.5">
                     <span className="text-[13px] font-heading text-dark">
@@ -186,7 +186,7 @@ export default function BillingPage() {
       <div>
         <button
           onClick={() => setShowUpgrade(true)}
-          className="border border-border text-dark font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-surface cursor-pointer w-full md:w-auto"
+          className="border border-border rounded-lg text-dark font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-surface cursor-pointer w-full md:w-auto"
         >
           Change plan
         </button>
@@ -209,14 +209,14 @@ export default function BillingPage() {
           <div className="flex items-center justify-end gap-3">
             <button
               onClick={() => setShowCancelConfirm(false)}
-              className="border border-border text-dark font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer bg-white hover:bg-surface transition-colors"
+              className="border border-border rounded-lg text-dark font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer bg-white hover:bg-surface transition-colors"
             >
               Keep plan
             </button>
             <button
               onClick={handleCancel}
               disabled={isLoading}
-              className="bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-brand/90 transition-colors border-none disabled:opacity-60"
+              className="bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-brand/90 transition-colors border-none disabled:opacity-60 rounded-lg"
             >
               {isLoading ? (
                 <span className="animate-pulse">Cancelling...</span>

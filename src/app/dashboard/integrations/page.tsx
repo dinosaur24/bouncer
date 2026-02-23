@@ -165,7 +165,7 @@ export default function IntegrationsPage() {
   return (
     <>
       {/* Page Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="flex flex-col gap-1">
           <h1 className="font-heading text-[28px] font-bold text-dark">
             Integrations
@@ -175,7 +175,7 @@ export default function IntegrationsPage() {
           </p>
         </div>
 
-        <button className="border border-border text-dark font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer bg-white hover:bg-surface transition-colors">
+        <button className="border border-border rounded-lg text-dark font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer bg-white hover:bg-surface transition-colors self-start">
           Browse marketplace
         </button>
       </div>
@@ -188,7 +188,7 @@ export default function IntegrationsPage() {
               {category}
             </h2>
 
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
               {cards.map((card) => {
                 const conn = getConnection(card.provider);
                 const isConnected = conn?.status === "connected";
@@ -196,12 +196,12 @@ export default function IntegrationsPage() {
                 return (
                   <div
                     key={card.provider}
-                    className="border border-border p-6 flex flex-col gap-4"
+                    className="border border-border rounded-lg p-6 flex flex-col gap-4"
                   >
                     {/* Top */}
                     <div className="flex items-start gap-4">
                       <div
-                        className="w-10 h-10 flex items-center justify-center shrink-0"
+                        className="w-10 h-10 flex items-center justify-center shrink-0 rounded-lg"
                         style={{ backgroundColor: card.iconBg }}
                       >
                         <span
@@ -261,7 +261,7 @@ export default function IntegrationsPage() {
                         </div>
                       ) : (
                         <button
-                          className="border border-border text-dark font-heading text-[13px] px-4 py-1.5 cursor-pointer bg-white hover:bg-surface transition-colors"
+                          className="border border-border rounded-lg text-dark font-heading text-[13px] px-4 py-1.5 cursor-pointer bg-white hover:bg-surface transition-colors"
                           onClick={() => handleConnect(card.provider)}
                           disabled={connecting === card.provider || isLoading}
                         >
@@ -315,11 +315,11 @@ export default function IntegrationsPage() {
                       <span className="text-white text-[10px]">&#10003;</span>
                     )}
                   </button>
-                  <span className="bg-surface p-2 text-[13px] text-dark font-medium flex-1">
+                  <span className="bg-surface p-2 text-[13px] text-dark font-medium flex-1 rounded-lg">
                     {mapping.bouncerField}
                   </span>
                   <ArrowRight size={14} className="text-gray shrink-0" />
-                  <span className="bg-surface p-2 text-[13px] text-dark font-medium flex-1">
+                  <span className="bg-surface p-2 text-[13px] text-dark font-medium flex-1 rounded-lg">
                     {mapping.crmField}
                   </span>
                 </div>
@@ -342,14 +342,14 @@ export default function IntegrationsPage() {
                   setConfiguringId(null);
                   setConfiguringName(null);
                 }}
-                className="border border-border text-dark font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer bg-white hover:bg-surface transition-colors"
+                className="border border-border rounded-lg text-dark font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer bg-white hover:bg-surface transition-colors"
               >
                 Close
               </button>
               <button
                 onClick={handleSaveMapping}
                 disabled={isLoading}
-                className="bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-brand/90 transition-colors border-none disabled:opacity-60"
+                className="bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-brand/90 transition-colors border-none disabled:opacity-60 rounded-lg"
               >
                 {isLoading ? (
                   <span className="animate-pulse">Saving...</span>

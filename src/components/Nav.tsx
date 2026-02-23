@@ -13,7 +13,7 @@ const navLinks = [
 ];
 
 const primaryButtonClasses =
-  "bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-dark/90 transition-colors inline-block text-center";
+  "bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 rounded-lg cursor-pointer hover:bg-dark/90 transition-colors inline-block text-center";
 
 export function Nav() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -32,7 +32,7 @@ export function Nav() {
       <div className="flex items-center justify-between px-5 py-3 md:px-12 md:py-4">
         {/* Logo */}
         <div className="flex items-center gap-2.5 md:gap-3">
-          <div className="w-5 h-5 md:w-6 md:h-6 bg-brand" />
+          <div className="w-5 h-5 md:w-6 md:h-6 bg-brand rounded-md" />
           <span className="font-heading text-base md:text-lg font-semibold text-dark">
             Bouncer
           </span>
@@ -69,7 +69,7 @@ export function Nav() {
               </button>
               <Link
                 href="/dashboard"
-                className="w-8 h-8 bg-dark flex items-center justify-center"
+                className="w-8 h-8 bg-dark rounded-lg flex items-center justify-center"
               >
                 <span className="text-white font-heading text-[13px] font-medium">
                   {userInitial}

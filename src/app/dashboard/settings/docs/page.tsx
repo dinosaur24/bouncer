@@ -59,7 +59,7 @@ const articles: Record<string, { title: string; content: React.ReactNode }> = {
             Paste the snippet just before it. If you use a CMS like WordPress,
             add it via the theme editor or a custom code plugin.
           </p>
-          <div className="bg-dark p-4 overflow-x-auto">
+          <div className="bg-dark p-4 overflow-x-auto rounded-lg">
             <pre className="text-[13px] font-mono text-[#4ADE80]">
 {`<script
   src="https://cdn.bouncer.io/snippet.js"
@@ -157,7 +157,7 @@ export default function DocsPage() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search docs..."
-          className="w-full border border-border pl-9 pr-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors placeholder:text-light-gray"
+          className="w-full border border-border rounded-lg pl-9 pr-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors placeholder:text-light-gray"
         />
       </div>
 

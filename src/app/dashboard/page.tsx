@@ -127,9 +127,9 @@ export default function DashboardPage() {
   return (
     <>
       {/* Page Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="flex flex-col gap-1">
-          <h1 className="font-heading text-[40px] font-medium tracking-tight leading-tight">
+          <h1 className="font-heading text-[28px] md:text-[40px] font-medium tracking-tight leading-tight">
             Overview
           </h1>
           <p className="text-sm text-gray">
@@ -137,17 +137,17 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {/* Date picker */}
-          <div className="flex items-center">
+          <div className="flex border border-border rounded-lg overflow-hidden">
             {dateRanges.map((range) => (
               <button
                 key={range}
                 onClick={() => setActiveDateRange(range)}
-                className={`font-heading text-[13px] font-medium px-4 py-2.5 cursor-pointer ${
+                className={`px-4 py-2.5 text-xs font-medium cursor-pointer transition-colors ${
                   activeDateRange === range
                     ? "bg-dark text-white"
-                    : "border border-border text-dark bg-white"
+                    : "bg-white text-gray hover:bg-surface"
                 }`}
               >
                 {range}
@@ -158,7 +158,7 @@ export default function DashboardPage() {
           {/* Export button */}
           <button
             onClick={handleExport}
-            className="border border-border font-heading text-[13px] font-medium px-4 py-2.5 text-dark cursor-pointer bg-white hover:bg-surface transition-colors flex items-center gap-2"
+            className="border border-border rounded-lg font-heading text-[13px] font-medium px-4 py-2.5 text-dark cursor-pointer bg-white hover:bg-surface transition-colors flex items-center gap-2"
           >
             <Download size={14} />
             Export
@@ -167,7 +167,7 @@ export default function DashboardPage() {
           {/* Add source button */}
           <Link
             href="/dashboard/sources"
-            className="bg-dark text-white font-heading text-[13px] font-medium px-4 py-2.5 cursor-pointer hover:bg-dark/90 transition-colors"
+            className="bg-dark text-white font-heading text-[13px] font-medium px-4 py-2.5 cursor-pointer hover:bg-dark/90 transition-colors rounded-lg"
           >
             Add source
           </Link>
@@ -176,9 +176,9 @@ export default function DashboardPage() {
 
       {/* Metrics Row */}
       {isLoading ? (
-        <div className="grid grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="border border-border p-7 animate-pulse">
+            <div key={i} className="border border-border rounded-lg p-7 animate-pulse">
               <div className="h-3 w-24 bg-gray-200 rounded mb-3" />
               <div className="h-7 w-16 bg-gray-200 rounded mt-2" />
               <div className="h-3 w-12 bg-gray-200 rounded mt-3" />
@@ -186,9 +186,9 @@ export default function DashboardPage() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {metrics.map((metric) => (
-            <div key={metric.label} className="border border-border p-7">
+            <div key={metric.label} className="border border-border rounded-lg p-7">
               <span className="text-[13px] text-gray">{metric.label}</span>
               <div className="font-heading text-4xl font-semibold tracking-tight mt-2">
                 {metric.value}
@@ -203,10 +203,10 @@ export default function DashboardPage() {
       )}
 
       {/* Bottom Row */}
-      <div className="flex gap-6 flex-1 min-h-0">
+      <div className="flex flex-col md:flex-row gap-6 flex-1 min-h-0">
         {/* Chart Section */}
         {isLoading ? (
-          <div className="flex-1 border border-border p-7 flex flex-col animate-pulse">
+          <div className="flex-1 border border-border rounded-lg p-7 flex flex-col animate-pulse">
             <div className="flex items-center justify-between mb-8">
               <div className="h-5 w-40 bg-gray-200 rounded" />
               <div className="h-3 w-48 bg-gray-200 rounded" />
@@ -224,13 +224,13 @@ export default function DashboardPage() {
             </div>
           </div>
         ) : (
-          <div className="flex-1 border border-border p-7 flex flex-col">
+          <div className="flex-1 border border-border rounded-lg p-7 flex flex-col">
             {/* Chart Header */}
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-8">
               <h2 className="font-heading text-lg font-semibold">
                 Validation Volume
               </h2>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 flex-wrap">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-dark" />
                   <span className="text-[13px] text-gray">Daily</span>
@@ -306,7 +306,7 @@ export default function DashboardPage() {
 
         {/* Recent Validations */}
         {isLoading ? (
-          <div className="w-[420px] border border-border p-6 flex flex-col animate-pulse">
+          <div className="w-full md:w-[420px] border border-border rounded-lg p-6 flex flex-col animate-pulse">
             <div className="flex items-center justify-between mb-6">
               <div className="h-5 w-36 bg-gray-200 rounded" />
               <div className="h-3 w-16 bg-gray-200 rounded" />
@@ -327,7 +327,7 @@ export default function DashboardPage() {
             </div>
           </div>
         ) : (
-          <div className="w-[420px] border border-border p-6 flex flex-col">
+          <div className="w-full md:w-[420px] border border-border rounded-lg p-6 flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-heading text-lg font-semibold">

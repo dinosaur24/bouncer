@@ -168,7 +168,7 @@ export default function ValidationsPage() {
   return (
     <>
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         {/* Left */}
         <div className="flex flex-col gap-1">
           <h1 className="font-heading text-[28px] font-bold text-dark">
@@ -180,9 +180,9 @@ export default function ValidationsPage() {
         </div>
 
         {/* Right */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {/* Date picker */}
-          <div className="flex border border-border">
+          <div className="flex border border-border rounded-lg overflow-hidden">
             {dateRanges.map((range) => (
               <button
                 key={range}
@@ -199,7 +199,7 @@ export default function ValidationsPage() {
           </div>
 
           {/* Search box */}
-          <div className="relative flex items-center border border-border px-4 py-2.5 w-[260px]">
+          <div className="relative flex items-center border border-border rounded-lg px-4 py-2.5 w-[260px]">
             <Search size={14} className="text-gray mr-2 shrink-0" />
             <input
               type="text"
@@ -217,7 +217,7 @@ export default function ValidationsPage() {
           <div className="relative" ref={filterRef}>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 border border-border px-4 py-2.5 text-xs font-medium cursor-pointer transition-colors ${
+              className={`flex items-center gap-2 border border-border rounded-lg px-4 py-2.5 text-xs font-medium cursor-pointer transition-colors ${
                 statusFilter !== "All"
                   ? "bg-dark text-white"
                   : "text-dark hover:bg-surface"
@@ -232,7 +232,7 @@ export default function ValidationsPage() {
               )}
             </button>
             {showFilters && (
-              <div className="absolute top-full right-0 mt-1 bg-white border border-border shadow-lg z-40 min-w-[160px]">
+              <div className="absolute top-full right-0 mt-1 bg-white border border-border rounded-lg shadow-lg z-40 min-w-[160px] overflow-hidden">
                 {statusOptions.map((option) => (
                   <button
                     key={option}
@@ -257,7 +257,7 @@ export default function ValidationsPage() {
           {/* Export button */}
           <button
             onClick={handleExport}
-            className="flex items-center gap-2 border border-border px-4 py-2.5 text-xs font-medium text-dark cursor-pointer hover:bg-surface transition-colors"
+            className="flex items-center gap-2 border border-border rounded-lg px-4 py-2.5 text-xs font-medium text-dark cursor-pointer hover:bg-surface transition-colors"
           >
             <Download size={12} />
             Export
@@ -266,9 +266,9 @@ export default function ValidationsPage() {
       </div>
 
       {/* Validation Table */}
-      <div className="border border-border w-full">
+      <div className="border border-border rounded-lg w-full overflow-x-auto">
         {/* Table Header */}
-        <div className="flex items-center bg-surface px-5 py-3 border-b border-border">
+        <div className="flex items-center bg-surface px-5 py-3 border-b border-border min-w-[900px]">
           {columns.map((col) => (
             <div key={col.label} className={col.width}>
               <span className="text-xs text-gray font-medium uppercase tracking-wide">
@@ -285,7 +285,7 @@ export default function ValidationsPage() {
             <div
               key={row.id}
               onClick={() => handleRowClick(row)}
-              className="flex items-center px-5 py-3.5 border-b border-border cursor-pointer hover:bg-surface transition-colors"
+              className="flex items-center px-5 py-3.5 border-b border-border cursor-pointer hover:bg-surface transition-colors min-w-[900px]"
             >
               {/* Email */}
               <div className="w-[260px]">
@@ -297,7 +297,7 @@ export default function ValidationsPage() {
               {/* Status */}
               <div className="w-[140px]">
                 <span
-                  className={`inline-block rounded-none px-2.5 py-0.5 text-xs font-medium ${style.bg} ${style.text}`}
+                  className={`inline-block rounded-lg px-2.5 py-0.5 text-xs font-medium ${style.bg} ${style.text}`}
                 >
                   {row.status}
                 </span>
@@ -350,7 +350,7 @@ export default function ValidationsPage() {
               <button
                 key={page}
                 onClick={() => setActivePage(page)}
-                className={`px-2.5 py-1 text-xs font-medium cursor-pointer transition-colors ${
+                className={`px-2.5 py-1 text-xs font-medium cursor-pointer transition-colors rounded-lg ${
                   activePage === page
                     ? "bg-dark text-white"
                     : "border border-border text-dark hover:bg-surface"

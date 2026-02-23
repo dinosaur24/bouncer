@@ -48,7 +48,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`flex items-center gap-3 px-5 py-3.5 border shadow-lg animate-[slideIn_0.2s_ease-out] ${
+            className={`flex items-center gap-3 px-5 py-3.5 border shadow-lg animate-[slideIn_0.2s_ease-out] rounded-lg ${
               toast.type === "success"
                 ? "bg-white border-[#22C55E]/20"
                 : toast.type === "error"
@@ -57,12 +57,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             }`}
           >
             {toast.type === "success" && (
-              <div className="w-5 h-5 bg-[#22C55E] flex items-center justify-center shrink-0">
+              <div className="w-5 h-5 bg-[#22C55E] rounded-md flex items-center justify-center shrink-0">
                 <Check size={12} className="text-white" />
               </div>
             )}
             {toast.type === "error" && (
-              <div className="w-5 h-5 bg-[#E42313] flex items-center justify-center shrink-0">
+              <div className="w-5 h-5 bg-[#E42313] rounded-md flex items-center justify-center shrink-0">
                 <AlertTriangle size={12} className="text-white" />
               </div>
             )}

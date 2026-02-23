@@ -13,11 +13,10 @@ export default function ScoringPage() {
   const [blockRejected, setBlockRejected] = useState(scoring.blockRejected);
   const [rejectionMessage, setRejectionMessage] = useState(scoring.rejectionMessage);
 
-  const ranges = [
-    { label: "Passed", color: "#22C55E", range: `${passedMin} — 100`, width: `${100 - passedMin}%` },
-    { label: "Borderline", color: "#F59E0B", range: `${borderlineMin} — ${passedMin - 1}`, width: `${passedMin - borderlineMin}%` },
-    { label: "Rejected", color: "#E42313", range: `0 — ${borderlineMin - 1}`, width: `${borderlineMin}%` },
-  ];
+  const sliderBg = (color: string, value: number, min: number, max: number) => {
+    const pct = ((value - min) / (max - min)) * 100;
+    return `linear-gradient(to right, ${color} ${pct}%, #E5E5E5 ${pct}%)`;
+  };
 
   const preview = [
     { label: "Passed", value: "62", color: "#22C55E", bg: "bg-green/5" },
@@ -53,28 +52,62 @@ export default function ScoringPage() {
 
       {/* Score Ranges */}
       <div className="flex flex-col gap-6">
-        {ranges.map((r) => (
-          <div key={r.label} className="flex flex-col gap-2.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: r.color }}
-                />
-                <span className="font-heading text-sm font-medium text-dark">
-                  {r.label}
-                </span>
-              </div>
-              <span className="text-[13px] text-gray">{r.range}</span>
+        {/* Passed */}
+        <div className="flex flex-col gap-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#22C55E]" />
+              <span className="font-heading text-sm font-medium text-dark">Passed</span>
             </div>
-            <div className="w-full h-2.5 bg-surface overflow-hidden">
-              <div
-                className="h-full"
-                style={{ backgroundColor: r.color, width: r.width }}
-              />
-            </div>
+            <span className="text-[13px] text-gray tabular-nums">{passedMin} — 100</span>
           </div>
-        ))}
+          <input
+            type="range"
+            min={borderlineMin + 1}
+            max={99}
+            value={passedMin}
+            onChange={(e) => setPassedMin(Number(e.target.value))}
+            className="threshold-slider threshold-slider--green w-full"
+            style={{ background: sliderBg("#22C55E", passedMin, borderlineMin + 1, 99) }}
+          />
+        </div>
+
+        {/* Borderline */}
+        <div className="flex flex-col gap-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
+              <span className="font-heading text-sm font-medium text-dark">Borderline</span>
+            </div>
+            <span className="text-[13px] text-gray tabular-nums">{borderlineMin} — {passedMin - 1}</span>
+          </div>
+          <input
+            type="range"
+            min={1}
+            max={passedMin - 1}
+            value={borderlineMin}
+            onChange={(e) => setBorderlineMin(Number(e.target.value))}
+            className="threshold-slider threshold-slider--amber w-full"
+            style={{ background: sliderBg("#F59E0B", borderlineMin, 1, passedMin - 1) }}
+          />
+        </div>
+
+        {/* Rejected */}
+        <div className="flex flex-col gap-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#E42313]" />
+              <span className="font-heading text-sm font-medium text-dark">Rejected</span>
+            </div>
+            <span className="text-[13px] text-gray tabular-nums">0 — {borderlineMin - 1}</span>
+          </div>
+          <div className="w-full h-2.5 bg-[#E5E5E5] rounded-full">
+            <div
+              className="h-2.5 rounded-full bg-[#E42313] transition-all"
+              style={{ width: `${borderlineMin}%` }}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Block Toggle */}
@@ -133,7 +166,7 @@ export default function ScoringPage() {
           value={rejectionMessage}
           onChange={(e) => setRejectionMessage(e.target.value)}
           rows={3}
-          className="w-full border border-border px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors resize-none"
+          className="w-full border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors resize-none"
         />
       </div>
 
@@ -142,7 +175,7 @@ export default function ScoringPage() {
         <button
           onClick={handleSave}
           disabled={isLoading}
-          className={`bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-dark/90 cursor-pointer ${
+          className={`bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-dark/90 cursor-pointer rounded-lg ${
             isLoading ? "opacity-50 cursor-not-allowed" : ""
           }`}
         >

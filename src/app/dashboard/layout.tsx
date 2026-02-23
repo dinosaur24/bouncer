@@ -62,7 +62,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const nextTierLabel = user?.plan === 'free' ? 'Starter' : user?.plan === 'starter' ? 'Growth' : user?.plan === 'growth' ? 'Scale' : null;
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-white max-w-[1440px] mx-auto">
+    <div className="flex flex-col md:flex-row h-screen bg-white">
       {/* Mobile top bar */}
       <div className="md:hidden flex items-center justify-between px-5 py-3 border-b border-border">
         <button
@@ -76,12 +76,12 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           )}
         </button>
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 bg-brand" />
+          <div className="w-5 h-5 bg-brand rounded-md" />
           <span className="font-heading text-base font-semibold text-dark">
             Bouncer
           </span>
         </div>
-        <div className="w-8 h-8 bg-dark flex items-center justify-center">
+        <div className="w-8 h-8 bg-dark rounded-lg flex items-center justify-center">
           <span className="text-white font-heading text-[11px] font-medium">
             {initials}
           </span>
@@ -116,7 +116,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         <div className="flex flex-col gap-12">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 bg-brand" />
+            <div className="w-7 h-7 bg-brand rounded-md" />
             <span className="font-heading text-lg font-semibold text-dark">
               Bouncer
             </span>
@@ -154,7 +154,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         {/* Bottom */}
         <div className="flex flex-col gap-6">
           {/* Upgrade box */}
-          <div className="bg-surface p-5 flex flex-col gap-4">
+          <div className="bg-surface p-5 flex flex-col gap-4 rounded-lg">
             {/* Usage indicator */}
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
@@ -190,7 +190,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 </p>
                 <Link
                   href="/dashboard/settings/billing"
-                  className="bg-brand text-white font-heading text-xs font-medium px-4 py-2.5 cursor-pointer hover:bg-brand/90 transition-colors w-full text-center"
+                  className="bg-brand text-white font-heading text-xs font-medium px-4 py-2.5 cursor-pointer hover:bg-brand/90 transition-colors w-full text-center rounded-lg"
                 >
                   Upgrade
                 </Link>
@@ -207,7 +207,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           {/* User */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-dark flex items-center justify-center">
+              <div className="w-9 h-9 bg-dark rounded-lg flex items-center justify-center">
                 <span className="text-white font-heading text-[13px] font-medium">
                   {initials}
                 </span>

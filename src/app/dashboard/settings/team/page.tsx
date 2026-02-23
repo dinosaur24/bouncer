@@ -62,13 +62,13 @@ export default function TeamPage() {
           value={inviteEmail}
           onChange={(e) => setInviteEmail(e.target.value)}
           placeholder="colleague@company.com"
-          className="flex-1 border border-border px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors placeholder:text-light-gray"
+          className="flex-1 border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors placeholder:text-light-gray"
         />
         <div className="relative">
           <select
             value={inviteRole}
             onChange={(e) => setInviteRole(e.target.value)}
-            className="w-full md:w-[140px] border border-border px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors appearance-none cursor-pointer"
+            className="w-full md:w-[140px] border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors appearance-none cursor-pointer"
           >
             <option>Admin</option>
             <option>Member</option>
@@ -78,7 +78,7 @@ export default function TeamPage() {
         <button
           onClick={handleInvite}
           disabled={isLoading || !inviteEmail}
-          className="bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-dark/90 cursor-pointer shrink-0 disabled:opacity-60"
+          className="bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-dark/90 cursor-pointer shrink-0 disabled:opacity-60 rounded-lg"
         >
           {isLoading ? (
             <span className="animate-pulse">Sending...</span>
@@ -109,7 +109,7 @@ export default function TeamPage() {
               className="grid grid-cols-5 py-3 border-b border-border items-center"
             >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-dark flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 bg-dark rounded-lg flex items-center justify-center shrink-0">
                   <span className="text-white font-heading text-[11px] font-medium">
                     {m.initials}
                   </span>
@@ -125,7 +125,7 @@ export default function TeamPage() {
                 {m.role}
               </span>
               <span
-                className={`text-xs font-medium px-2 py-0.5 w-fit ${
+                className={`text-xs font-medium px-2 py-0.5 w-fit rounded-lg ${
                   m.status === "Active"
                     ? "bg-green/10 text-green"
                     : "bg-[#FEF3C7] text-[#D97706]"
@@ -154,10 +154,10 @@ export default function TeamPage() {
           {members.map((m) => (
             <div
               key={m.id}
-              className="border border-border p-4 flex items-center justify-between"
+              className="border border-border rounded-lg p-4 flex items-center justify-between"
             >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-dark flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 bg-dark rounded-lg flex items-center justify-center shrink-0">
                   <span className="text-white font-heading text-[11px] font-medium">
                     {m.initials}
                   </span>
@@ -207,14 +207,14 @@ export default function TeamPage() {
                 setShowRemoveConfirm(false);
                 setMemberToRemove(null);
               }}
-              className="border border-border text-dark font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer bg-white hover:bg-surface transition-colors"
+              className="border border-border rounded-lg text-dark font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer bg-white hover:bg-surface transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleConfirmRemove}
               disabled={removingId !== null}
-              className="bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-brand/90 transition-colors border-none disabled:opacity-60"
+              className="bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-brand/90 transition-colors border-none disabled:opacity-60 rounded-lg"
             >
               {removingId ? (
                 <span className="animate-pulse">Removing...</span>

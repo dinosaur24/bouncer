@@ -90,7 +90,7 @@ export default function SettingsPage() {
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, firstName: e.target.value }))
               }
-              className="w-full border border-border px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors"
+              className="w-full border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors"
             />
           </div>
           <div>
@@ -103,7 +103,7 @@ export default function SettingsPage() {
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, lastName: e.target.value }))
               }
-              className="w-full border border-border px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors"
+              className="w-full border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors"
             />
           </div>
           <div className="col-span-1 md:col-span-2">
@@ -116,7 +116,7 @@ export default function SettingsPage() {
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, email: e.target.value }))
               }
-              className="w-full border border-border px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors"
+              className="w-full border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors"
             />
           </div>
           <div className="col-span-1 md:col-span-2">
@@ -129,7 +129,7 @@ export default function SettingsPage() {
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, company: e.target.value }))
               }
-              className="w-full border border-border px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors"
+              className="w-full border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors"
             />
           </div>
         </div>
@@ -138,7 +138,7 @@ export default function SettingsPage() {
           <button
             onClick={handleSave}
             disabled={isLoading}
-            className={`bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-dark/90 cursor-pointer ${
+            className={`bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-dark/90 cursor-pointer rounded-lg ${
               isLoading ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
@@ -146,7 +146,7 @@ export default function SettingsPage() {
           </button>
           <button
             onClick={handleCancel}
-            className="border border-border text-dark font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-surface cursor-pointer"
+            className="border border-border rounded-lg text-dark font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-surface cursor-pointer"
           >
             Cancel
           </button>
@@ -154,7 +154,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Danger Zone */}
-      <div className="mt-4 border border-[#FEE2E2] p-6">
+      <div className="mt-4 border border-[#FEE2E2] rounded-lg p-6">
         <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
           <div className="flex flex-col gap-2">
             <h3 className="font-heading text-[15px] font-semibold text-dark">
@@ -170,7 +170,7 @@ export default function SettingsPage() {
               setDeleteConfirm("");
               setDeleteModalOpen(true);
             }}
-            className="bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-brand/90 cursor-pointer shrink-0"
+            className="bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-brand/90 cursor-pointer shrink-0 rounded-lg"
           >
             Delete account
           </button>
@@ -197,14 +197,14 @@ export default function SettingsPage() {
               type="text"
               value={deleteConfirm}
               onChange={(e) => setDeleteConfirm(e.target.value)}
-              className="w-full border border-border px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors"
+              className="w-full border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors"
             />
           </div>
           <div className="flex gap-3">
             <button
               onClick={handleDeleteAccount}
               disabled={deleteConfirm !== "DELETE" || isDeleting}
-              className={`bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 ${
+              className={`bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 rounded-lg ${
                 deleteConfirm === "DELETE" && !isDeleting
                   ? "hover:bg-brand/90 cursor-pointer"
                   : "opacity-50 cursor-not-allowed"
@@ -214,7 +214,7 @@ export default function SettingsPage() {
             </button>
             <button
               onClick={() => setDeleteModalOpen(false)}
-              className="border border-border text-dark font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-surface cursor-pointer"
+              className="border border-border rounded-lg text-dark font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-surface cursor-pointer"
             >
               Cancel
             </button>

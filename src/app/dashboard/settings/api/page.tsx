@@ -129,11 +129,11 @@ export default function APIPage() {
                 type="text"
                 value={maskedLiveKey}
                 readOnly
-                className="flex-1 border border-border px-4 py-2.5 text-[13px] text-dark font-heading bg-surface focus:outline-none"
+                className="flex-1 border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-surface focus:outline-none"
               />
               <button
                 onClick={() => copyToClipboard(apiKeys.liveKey, "live")}
-                className="border border-border px-3 py-2.5 hover:bg-surface cursor-pointer flex items-center"
+                className="border border-border rounded-lg px-3 py-2.5 hover:bg-surface cursor-pointer flex items-center"
               >
                 {copiedKey === "live" ? (
                   <Check size={14} className="text-green" />
@@ -154,11 +154,11 @@ export default function APIPage() {
                 type="text"
                 value={apiKeys.testKey}
                 readOnly
-                className="flex-1 border border-border px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none"
+                className="flex-1 border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none"
               />
               <button
                 onClick={() => copyToClipboard(apiKeys.testKey, "test")}
-                className="border border-border px-3 py-2.5 hover:bg-surface cursor-pointer flex items-center"
+                className="border border-border rounded-lg px-3 py-2.5 hover:bg-surface cursor-pointer flex items-center"
               >
                 {copiedKey === "test" ? (
                   <Check size={14} className="text-green" />
@@ -198,7 +198,7 @@ export default function APIPage() {
             value={webhookUrl}
             onChange={(e) => setWebhookUrl(e.target.value)}
             placeholder="https://api.acme.com/webhooks"
-            className="w-full border border-border px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors placeholder:text-light-gray"
+            className="w-full border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors placeholder:text-light-gray"
           />
         </div>
 
@@ -241,7 +241,7 @@ export default function APIPage() {
           <button
             onClick={handleTestWebhook}
             disabled={isTesting}
-            className={`border border-border text-dark font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-surface cursor-pointer ${
+            className={`border border-border rounded-lg text-dark font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-surface cursor-pointer ${
               isTesting ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
@@ -272,7 +272,7 @@ export default function APIPage() {
             </button>
             <button
               onClick={() => setRegenModalOpen(false)}
-              className="border border-border text-dark font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-surface cursor-pointer"
+              className="border border-border rounded-lg text-dark font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-surface cursor-pointer"
             >
               Cancel
             </button>

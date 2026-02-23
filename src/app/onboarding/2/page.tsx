@@ -104,7 +104,7 @@ export default function InstallSnippetPage() {
       </div>
 
       {/* Code block */}
-      <div className="mt-4 bg-dark p-5 relative overflow-x-auto rounded">
+      <div className="mt-4 bg-dark p-5 relative overflow-x-auto rounded-lg">
         <pre>
           <code className="text-[13px] font-mono text-[#4ADE80]">
             {snippets[activeTab]}
@@ -132,7 +132,7 @@ export default function InstallSnippetPage() {
       <button
         onClick={handleTest}
         disabled={isLoading}
-        className={`mt-4 w-full border font-heading text-[13px] font-medium py-2.5 flex items-center justify-center gap-2 transition-colors ${
+        className={`mt-4 w-full border rounded-lg font-heading text-[13px] font-medium py-2.5 flex items-center justify-center gap-2 transition-colors ${
           verified
             ? "border-green text-green"
             : "border-border text-dark hover:border-dark"
@@ -159,7 +159,7 @@ export default function InstallSnippetPage() {
       {/* Continue button */}
       <button
         onClick={handleContinue}
-        className="mt-6 w-full bg-dark text-white font-heading text-[13px] font-medium py-2.5 text-center block"
+        className="mt-6 w-full bg-dark text-white font-heading text-[13px] font-medium py-2.5 text-center block rounded-lg"
       >
         Continue
       </button>

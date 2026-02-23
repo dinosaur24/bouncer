@@ -38,7 +38,7 @@ export function Modal({
         onClick={onClose}
       />
       <div
-        className={`relative bg-white border border-border p-8 ${width} w-full mx-4 animate-[scaleIn_0.15s_ease-out]`}
+        className={`relative bg-white border border-border rounded-lg p-8 ${width} w-full mx-4 animate-[scaleIn_0.15s_ease-out]`}
       >
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-heading text-lg font-semibold text-dark">

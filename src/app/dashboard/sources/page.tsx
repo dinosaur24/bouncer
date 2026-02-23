@@ -103,7 +103,7 @@ export default function SourcesPage() {
   return (
     <>
       {/* Page Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="flex flex-col gap-1">
           <h1 className="font-heading text-[28px] font-bold text-dark">
             Sources
@@ -115,18 +115,18 @@ export default function SourcesPage() {
 
         <button
           onClick={handleOpenAdd}
-          className="bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-dark/90 transition-colors"
+          className="bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-dark/90 transition-colors rounded-lg self-start"
         >
           Add Source
         </button>
       </div>
 
       {/* Sources Grid */}
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
         {sources.map((source) => (
           <div
             key={source.id}
-            className="border border-border p-6 flex flex-col gap-4"
+            className="border border-border rounded-lg p-6 flex flex-col gap-4"
           >
             {/* Top Row */}
             <div className="flex justify-between items-start">
@@ -134,7 +134,7 @@ export default function SourcesPage() {
                 {source.title}
               </span>
               <span
-                className={`text-[11px] font-medium px-2.5 py-0.5 ${
+                className={`text-[11px] font-medium px-2.5 py-0.5 rounded-lg ${
                   source.status === "Active"
                     ? "bg-[#F0FDF4] text-[#22C55E]"
                     : "bg-[#FFFBEB] text-[#F59E0B]"
@@ -203,9 +203,9 @@ export default function SourcesPage() {
         {/* Add New Source Card */}
         <div
           onClick={handleOpenAdd}
-          className="border border-dashed border-[#D0D0D0] p-6 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-gray transition-colors"
+          className="border border-dashed border-[#D0D0D0] rounded-lg p-6 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-gray transition-colors"
         >
-          <div className="w-10 h-10 border border-border flex items-center justify-center">
+          <div className="w-10 h-10 border border-border rounded-lg flex items-center justify-center">
             <span className="text-gray text-xl">+</span>
           </div>
           <span className="text-[13px] text-gray font-medium">
@@ -223,7 +223,7 @@ export default function SourcesPage() {
               type="text"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              className="w-full border border-border px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors"
+              className="w-full border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors"
             />
           </div>
           <div>
@@ -233,7 +233,7 @@ export default function SourcesPage() {
               value={newDomain}
               onChange={(e) => setNewDomain(e.target.value)}
               placeholder="yourdomain.com"
-              className="w-full border border-border px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors"
+              className="w-full border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors"
             />
           </div>
           <div>
@@ -257,14 +257,14 @@ export default function SourcesPage() {
           <div className="flex justify-end gap-3 pt-2">
             <button
               onClick={() => setAddModalOpen(false)}
-              className="border border-border text-dark font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-surface transition-colors"
+              className="border border-border rounded-lg text-dark font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-surface transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleCreateSource}
               disabled={isCreating}
-              className={`bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-dark/90 transition-colors ${
+              className={`bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-dark/90 transition-colors rounded-lg ${
                 isCreating ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
@@ -286,7 +286,7 @@ export default function SourcesPage() {
                 onChange={(e) =>
                   setEditingSource((prev) => prev ? { ...prev, title: e.target.value } : prev)
                 }
-                className="w-full border border-border px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors"
+                className="w-full border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors"
               />
             </div>
             <div>
@@ -297,20 +297,20 @@ export default function SourcesPage() {
                   setEditingSource((prev) => prev ? { ...prev, description: e.target.value } : prev)
                 }
                 rows={3}
-                className="w-full border border-border px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors resize-none"
+                className="w-full border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors resize-none"
               />
             </div>
             <div>
               <label className="text-[13px] text-gray mb-2 block">Status</label>
-              <div className="flex gap-0">
+              <div className="flex border border-border rounded-lg overflow-hidden w-fit">
                 <button
                   onClick={() =>
                     setEditingSource((prev) => prev ? { ...prev, status: "Active" as const } : prev)
                   }
-                  className={`font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer transition-colors ${
+                  className={`px-5 py-2.5 text-xs font-medium cursor-pointer transition-colors ${
                     editingSource.status === "Active"
                       ? "bg-dark text-white"
-                      : "border border-border text-dark hover:bg-surface"
+                      : "bg-white text-gray hover:bg-surface"
                   }`}
                 >
                   Active
@@ -319,10 +319,10 @@ export default function SourcesPage() {
                   onClick={() =>
                     setEditingSource((prev) => prev ? { ...prev, status: "Paused" as const } : prev)
                   }
-                  className={`font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer transition-colors ${
+                  className={`px-5 py-2.5 text-xs font-medium cursor-pointer transition-colors ${
                     editingSource.status === "Paused"
                       ? "bg-dark text-white"
-                      : "border border-border text-dark hover:bg-surface"
+                      : "bg-white text-gray hover:bg-surface"
                   }`}
                 >
                   Paused
@@ -332,14 +332,14 @@ export default function SourcesPage() {
             <div className="flex justify-end gap-3 pt-2">
               <button
                 onClick={() => setEditModalOpen(false)}
-                className="border border-border text-dark font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-surface transition-colors"
+                className="border border-border rounded-lg text-dark font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-surface transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveEdit}
                 disabled={isSaving}
-                className={`bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-dark/90 transition-colors ${
+                className={`bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-dark/90 transition-colors rounded-lg ${
                   isSaving ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               >
@@ -360,7 +360,7 @@ export default function SourcesPage() {
             <button
               onClick={handleDelete}
               disabled={isDeleting}
-              className={`bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 ${
+              className={`bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 rounded-lg ${
                 isDeleting ? "opacity-50 cursor-not-allowed" : "hover:bg-brand/90 cursor-pointer"
               }`}
             >
@@ -368,7 +368,7 @@ export default function SourcesPage() {
             </button>
             <button
               onClick={() => setDeleteModalOpen(false)}
-              className="border border-border text-dark font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-surface cursor-pointer"
+              className="border border-border rounded-lg text-dark font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-surface cursor-pointer"
             >
               Cancel
             </button>

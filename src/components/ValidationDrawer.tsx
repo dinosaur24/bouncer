@@ -113,12 +113,12 @@ export function ValidationDrawer({
             </div>
             <div className="flex items-center gap-3">
               <span
-                className={`px-2.5 py-0.5 text-xs font-medium ${colors.bg} ${colors.text}`}
+                className={`px-2.5 py-0.5 text-xs font-medium rounded-lg ${colors.bg} ${colors.text}`}
               >
                 {validation.status}
               </span>
               {validation.overridden && (
-                <span className="px-2.5 py-0.5 text-xs font-medium bg-[#F0FDF4] text-[#22C55E]">
+                <span className="px-2.5 py-0.5 text-xs font-medium bg-[#F0FDF4] text-[#22C55E] rounded-lg">
                   Overridden
                 </span>
               )}
@@ -131,7 +131,7 @@ export function ValidationDrawer({
           </div>
 
           {/* Meta info */}
-          <div className="grid grid-cols-2 gap-4 p-4 bg-surface">
+          <div className="grid grid-cols-2 gap-4 p-4 bg-surface rounded-lg">
             <div className="flex flex-col gap-0.5">
               <span className="text-[11px] text-[#999999] uppercase tracking-wide">
                 Source
@@ -177,9 +177,9 @@ export function ValidationDrawer({
               return (
                 <div
                   key={signal.name}
-                  className="border border-border p-4 flex items-start gap-4"
+                  className="border border-border rounded-lg p-4 flex items-start gap-4"
                 >
-                  <div className="w-9 h-9 bg-surface flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 bg-surface rounded-lg flex items-center justify-center shrink-0">
                     <Icon size={16} className="text-dark" />
                   </div>
                   <div className="flex-1 flex flex-col gap-1">
@@ -188,7 +188,7 @@ export function ValidationDrawer({
                         {signal.name}
                       </span>
                       <span
-                        className={`text-[11px] font-medium px-2 py-0.5 ${sc.bg} ${sc.text}`}
+                        className={`text-[11px] font-medium px-2 py-0.5 rounded-lg ${sc.bg} ${sc.text}`}
                       >
                         {sc.label}
                       </span>
@@ -208,7 +208,7 @@ export function ValidationDrawer({
             <button
               onClick={handleOverride}
               disabled={isOverriding}
-              className="bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-dark/90 transition-colors flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 rounded-lg cursor-pointer hover:bg-dark/90 transition-colors flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isOverriding && <Loader2 size={14} className="animate-spin" />}
               {isOverriding ? "Overriding..." : "Override: Accept"}
@@ -216,7 +216,7 @@ export function ValidationDrawer({
           )}
           <button
             onClick={onClose}
-            className="border border-border text-dark font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-surface transition-colors"
+            className="border border-border rounded-lg text-dark font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-surface transition-colors"
           >
             Close
           </button>

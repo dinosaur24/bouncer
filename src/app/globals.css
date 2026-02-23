@@ -1,51 +1,67 @@
 @import "tailwindcss";
 
-@theme inline {
+@theme {
   --font-heading: var(--font-space-grotesk);
   --font-body: var(--font-inter);
-  --color-brand: #E42313;
-  --color-dark: #0D0D0D;
-  --color-gray: #7A7A7A;
-  --color-light-gray: #B0B0B0;
-  --color-border: #E8E8E8;
-  --color-surface: #FAFAFA;
+
+  --color-dark: #1A1A1A;
+  --color-gray: #6B6B6B;
+  --color-light-gray: #9B9B9B;
+  --color-brand: #4F46E5;
   --color-green: #22C55E;
+  --color-surface: #F8F8F8;
+  --color-border: #E5E5E5;
 }
 
 body {
-  background: #ffffff;
-  color: var(--color-dark);
-  font-family: var(--font-body);
+  font-family: var(--font-body), system-ui, sans-serif;
 }
 
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+/* Threshold range sliders */
+.threshold-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 10px;
+  border-radius: 9999px;
+  background: #E5E5E5;
+  cursor: pointer;
+  outline: none;
+  accent-color: var(--slider-accent);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.threshold-slider--green { --slider-accent: #22C55E; }
+.threshold-slider--amber { --slider-accent: #F59E0B; }
+
+.threshold-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--slider-accent, #1A1A1A);
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
 }
 
-@keyframes scaleIn {
-  from {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+.threshold-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--slider-accent, #1A1A1A);
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  border: none;
 }
 
-@keyframes slideRight {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
+.threshold-slider::-moz-range-progress {
+  background: var(--slider-accent);
+  height: 10px;
+  border-radius: 9999px;
+}
+
+.threshold-slider::-moz-range-track {
+  background: #E5E5E5;
+  height: 10px;
+  border-radius: 9999px;
 }

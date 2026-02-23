@@ -66,7 +66,7 @@ export default function ConnectCRMPage() {
             key={crm.id}
             onClick={() => setSelectedCRM(crm.id)}
             disabled={isLoading}
-            className={`border p-4 flex items-center gap-4 cursor-pointer transition-colors text-left ${
+            className={`border rounded-lg p-4 flex items-center gap-4 cursor-pointer transition-colors text-left ${
               selectedCRM === crm.id
                 ? "border-brand border-2"
                 : "border-border"
@@ -115,7 +115,7 @@ export default function ConnectCRMPage() {
       <button
         onClick={() => handleConnect(selectedCRM)}
         disabled={isLoading}
-        className="mt-8 w-full bg-dark text-white font-heading text-[13px] font-medium py-2.5 text-center block disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        className="mt-8 w-full bg-dark text-white font-heading text-[13px] font-medium py-2.5 text-center block disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 rounded-lg"
       >
         {isLoading ? (
           <>

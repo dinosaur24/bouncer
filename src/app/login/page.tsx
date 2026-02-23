@@ -48,7 +48,7 @@ export default function LoginPage() {
         <div className="max-w-[420px] flex flex-col gap-10">
           {/* Logo */}
           <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 bg-brand" />
+            <div className="w-6 h-6 bg-brand rounded-md" />
             <span className="font-heading text-lg font-semibold text-white">
               Bouncer
             </span>
@@ -97,7 +97,7 @@ export default function LoginPage() {
             type="button"
             onClick={handleGoogle}
             disabled={isLoading}
-            className="w-full border border-border flex items-center justify-center gap-2 py-2.5 cursor-pointer hover:bg-surface transition-colors disabled:opacity-50"
+            className="w-full border border-border rounded-lg flex items-center justify-center gap-2 py-2.5 cursor-pointer hover:bg-surface transition-colors disabled:opacity-50"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
               <path
@@ -154,7 +154,7 @@ export default function LoginPage() {
                 placeholder="you@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full border border-border px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors"
+                className="w-full border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors"
               />
             </div>
 
@@ -173,7 +173,7 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full border border-border px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors pr-10"
+                  className="w-full border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors pr-10"
                 />
                 <button
                   type="button"
@@ -193,7 +193,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-dark text-white font-heading text-[13px] font-medium py-2.5 cursor-pointer hover:bg-dark/90 transition-colors disabled:opacity-50"
+              className="w-full bg-dark text-white font-heading text-[13px] font-medium py-2.5 cursor-pointer hover:bg-dark/90 transition-colors disabled:opacity-50 rounded-lg"
             >
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">

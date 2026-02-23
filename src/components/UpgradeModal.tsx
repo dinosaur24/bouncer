@@ -62,7 +62,7 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
                     {plan.name}
                   </span>
                   {isCurrent && (
-                    <span className="bg-brand/10 text-brand text-[10px] font-medium px-1.5 py-0.5">
+                    <span className="bg-brand/10 text-brand text-[10px] font-medium px-1.5 py-0.5 rounded-lg">
                       Current Plan
                     </span>
                   )}
@@ -86,7 +86,7 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
               <button
                 onClick={() => handleSelectPlan(tier)}
                 disabled={isCurrent || loadingTier !== null}
-                className={`font-heading text-[13px] font-medium px-4 py-2.5 cursor-pointer transition-colors w-full ${
+                className={`font-heading text-[13px] font-medium px-4 py-2.5 rounded-lg cursor-pointer transition-colors w-full ${
                   isCurrent
                     ? "bg-surface text-gray cursor-not-allowed"
                     : isUpgrade
