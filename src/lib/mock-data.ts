@@ -136,15 +136,17 @@ export function generateDashboardStats(validations: Validation[]): DashboardStat
   const passed = month.filter(v => v.status === 'Passed');
   const avgScore = month.length > 0 ? Math.round(month.reduce((s, v) => s + v.score, 0) / month.length) : 0;
 
+  const rejected = month.filter(v => v.status === 'Rejected');
+
   return {
-    validationsToday: today.length,
-    validationsMonth: month.length,
+    totalValidations: month.length,
     passRate: month.length > 0 ? Math.round((passed.length / month.length) * 100) : 0,
     avgScore,
-    todayChange: randomBetween(-5, 15),
-    monthChange: randomBetween(5, 25),
+    rejected: rejected.length,
+    totalChange: randomBetween(5, 25),
     passRateChange: randomBetween(-3, 5),
     avgScoreChange: randomBetween(-2, 4),
+    rejectedChange: randomBetween(-10, 10),
   };
 }
 
@@ -155,6 +157,7 @@ export function generateChartData(days: number = 7): ChartDataPoint[] {
     const date = new Date(now);
     date.setDate(date.getDate() - (days - 1 - i));
     return {
+      date: date.toISOString().split('T')[0],
       day: dayNames[date.getDay() === 0 ? 6 : date.getDay() - 1],
       passed: randomBetween(20, 60),
       borderline: randomBetween(5, 20),
@@ -182,10 +185,10 @@ export function generateTeamMembers(): TeamMember[] {
 
 export function generateSources(): FormSource[] {
   return [
-    { id: 'src_1', title: 'Main Website', domain: 'techcorp.io', status: 'Active', description: 'Primary marketing site contact form', submissions: 1247, passRate: 78, avgScore: 72, lastSubmission: '2 min ago', snippetId: 'snp_main' },
-    { id: 'src_2', title: 'Landing Page', domain: 'techcorp.io/demo', status: 'Active', description: 'Product demo request form', submissions: 834, passRate: 85, avgScore: 81, lastSubmission: '15 min ago', snippetId: 'snp_demo' },
-    { id: 'src_3', title: 'Blog CTA', domain: 'blog.techcorp.io', status: 'Active', description: 'Newsletter signup on blog', submissions: 2156, passRate: 62, avgScore: 58, lastSubmission: '1 hour ago', snippetId: 'snp_blog' },
-    { id: 'src_4', title: 'Webinar Registration', domain: 'events.techcorp.io', status: 'Paused', description: 'Webinar signup form', submissions: 412, passRate: 91, avgScore: 88, lastSubmission: '3 days ago', snippetId: 'snp_webinar' },
+    { id: 'src_1', title: 'Main Website', domain: 'techcorp.io', status: 'Active', description: 'Primary marketing site contact form', submissions: 1247, passRate: 78, avgScore: 72, lastSubmission: '2 min ago', snippetId: 'bnc_7f3a9e2b1d4c6f80' },
+    { id: 'src_2', title: 'Landing Page', domain: 'techcorp.io/demo', status: 'Active', description: 'Product demo request form', submissions: 834, passRate: 85, avgScore: 81, lastSubmission: '15 min ago', snippetId: 'bnc_2e8b4a1c9d0f5e73' },
+    { id: 'src_3', title: 'Blog CTA', domain: 'blog.techcorp.io', status: 'Active', description: 'Newsletter signup on blog', submissions: 2156, passRate: 62, avgScore: 58, lastSubmission: '1 hour ago', snippetId: 'bnc_5c1d8e4f2a7b0936' },
+    { id: 'src_4', title: 'Webinar Registration', domain: 'events.techcorp.io', status: 'Paused', description: 'Webinar signup form', submissions: 412, passRate: 91, avgScore: 88, lastSubmission: '3 days ago', snippetId: 'bnc_9a0e3b7c6d2f1845' },
   ];
 }
 
