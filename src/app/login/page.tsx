@@ -1,13 +1,45 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
+  const { login, loginWithGoogle } = useAuth();
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+    try {
+      await login(email, password);
+      router.push("/dashboard");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogle = async () => {
+    setIsLoading(true);
+    try {
+      await loginWithGoogle();
+      router.push("/dashboard");
+    } catch (err) {
+      setError("Google login failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-row">
@@ -61,7 +93,12 @@ export default function LoginPage() {
           </div>
 
           {/* Google SSO */}
-          <button className="w-full border border-border flex items-center justify-center gap-2 py-2.5 cursor-pointer hover:bg-surface transition-colors">
+          <button
+            type="button"
+            onClick={handleGoogle}
+            disabled={isLoading}
+            className="w-full border border-border flex items-center justify-center gap-2 py-2.5 cursor-pointer hover:bg-surface transition-colors disabled:opacity-50"
+          >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
               <path
                 d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z"
@@ -95,8 +132,14 @@ export default function LoginPage() {
           {/* Form */}
           <form
             className="flex flex-col gap-4"
-            onSubmit={(e) => e.preventDefault()}
+            onSubmit={handleSubmit}
           >
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                {error}
+              </div>
+            )}
+
             {/* Email */}
             <div className="flex flex-col gap-1.5">
               <label
@@ -149,9 +192,17 @@ export default function LoginPage() {
             {/* Submit */}
             <button
               type="submit"
-              className="w-full bg-dark text-white font-heading text-[13px] font-medium py-2.5 cursor-pointer hover:bg-dark/90 transition-colors"
+              disabled={isLoading}
+              className="w-full bg-dark text-white font-heading text-[13px] font-medium py-2.5 cursor-pointer hover:bg-dark/90 transition-colors disabled:opacity-50"
             >
-              Sign in
+              {isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Signing in...
+                </span>
+              ) : (
+                "Sign in"
+              )}
             </button>
           </form>
 
