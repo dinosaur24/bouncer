@@ -14,10 +14,9 @@ export default function SettingsPage() {
   const router = useRouter();
 
   const [form, setForm] = useState({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
+    name: user?.name || "",
     email: user?.email || "",
-    company: user?.company || "",
+    company_name: user?.company_name || "",
   });
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -35,10 +34,9 @@ export default function SettingsPage() {
 
   const handleCancel = () => {
     setForm({
-      firstName: user?.firstName || "",
-      lastName: user?.lastName || "",
+      name: user?.name || "",
       email: user?.email || "",
-      company: user?.company || "",
+      company_name: user?.company_name || "",
     });
   };
 
@@ -80,28 +78,15 @@ export default function SettingsPage() {
 
       <div className="flex flex-col gap-8 max-w-[560px]">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
+          <div className="col-span-1 md:col-span-2">
             <label className="text-[13px] text-gray mb-2 block">
-              First name
+              Full name
             </label>
             <input
               type="text"
-              value={form.firstName}
+              value={form.name}
               onChange={(e) =>
-                setForm((prev) => ({ ...prev, firstName: e.target.value }))
-              }
-              className="w-full border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors"
-            />
-          </div>
-          <div>
-            <label className="text-[13px] text-gray mb-2 block">
-              Last name
-            </label>
-            <input
-              type="text"
-              value={form.lastName}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, lastName: e.target.value }))
+                setForm((prev) => ({ ...prev, name: e.target.value }))
               }
               className="w-full border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors"
             />
@@ -113,10 +98,8 @@ export default function SettingsPage() {
             <input
               type="email"
               value={form.email}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, email: e.target.value }))
-              }
-              className="w-full border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors"
+              disabled
+              className="w-full border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-surface focus:outline-none transition-colors cursor-not-allowed"
             />
           </div>
           <div className="col-span-1 md:col-span-2">
@@ -125,9 +108,9 @@ export default function SettingsPage() {
             </label>
             <input
               type="text"
-              value={form.company}
+              value={form.company_name}
               onChange={(e) =>
-                setForm((prev) => ({ ...prev, company: e.target.value }))
+                setForm((prev) => ({ ...prev, company_name: e.target.value }))
               }
               className="w-full border border-border rounded-lg px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors"
             />

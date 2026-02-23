@@ -1,8 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import { simulateAPI, generateId } from '@/lib/api';
-import { getStored, setStored, clearAll } from '@/lib/storage';
+import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import type { ScoringThresholds, NotificationPrefs, WebhookConfig } from '@/lib/types';
 
@@ -17,7 +15,7 @@ interface SettingsContextType {
   apiKeys: ApiKeys;
   webhook: WebhookConfig;
   isLoading: boolean;
-  updateProfile: (data: { firstName: string; lastName: string; email: string; company: string }) => Promise<void>;
+  updateProfile: (data: { name: string; email: string; company_name: string }) => Promise<void>;
   updateNotifications: (prefs: NotificationPrefs) => Promise<void>;
   updateScoring: (thresholds: ScoringThresholds) => Promise<void>;
   regenerateApiKey: (type: 'live' | 'test') => Promise<string>;
@@ -50,71 +48,65 @@ const DEFAULT_SCORING: ScoringThresholds = {
 };
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
-  const { user, updateUser, logout } = useAuth();
-
-  const [notifications, setNotifications] = useState<NotificationPrefs>(DEFAULT_NOTIFICATIONS);
-  const [scoring, setScoring] = useState<ScoringThresholds>(DEFAULT_SCORING);
-  const [apiKeys, setApiKeys] = useState<ApiKeys>({ liveKey: '', testKey: '' });
-  const [webhook, setWebhook] = useState<WebhookConfig>({ url: '', events: ['validation.completed'], active: false });
+  const { user, refreshUser, logout } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    setNotifications(getStored('notifications', DEFAULT_NOTIFICATIONS));
-    setScoring(getStored('scoring', DEFAULT_SCORING));
-    setWebhook(getStored('webhook', { url: '', events: ['validation.completed'], active: false }));
-    const storedKeys = getStored<ApiKeys>('apikeys', { liveKey: '', testKey: '' });
-    if (!storedKeys.liveKey) {
-      const keys = { liveKey: generateApiKey('sk_live_'), testKey: generateApiKey('sk_test_') };
-      setApiKeys(keys);
-      setStored('apikeys', keys);
-    } else {
-      setApiKeys(storedKeys);
-    }
-  }, []);
+  const notifications = user?.notification_prefs ?? DEFAULT_NOTIFICATIONS;
+  const scoring = user?.scoring_thresholds ?? DEFAULT_SCORING;
+  const webhook = user?.webhook_config ?? { url: '', events: ['validation.completed'], active: false };
+  const apiKeys: ApiKeys = {
+    liveKey: user?.api_key ?? '',
+    testKey: '',
+  };
 
-  const updateProfile = useCallback(async (data: { firstName: string; lastName: string; email: string; company: string }) => {
+  const updateProfile = useCallback(async (data: { name: string; email: string; company_name: string }) => {
     setIsLoading(true);
     try {
-      await simulateAPI(data);
-      updateUser(data);
+      const res = await fetch('/api/user', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: data.name, company_name: data.company_name }),
+      });
+      if (res.ok) await refreshUser();
     } finally {
       setIsLoading(false);
     }
-  }, [updateUser]);
+  }, [refreshUser]);
 
   const updateNotifications = useCallback(async (prefs: NotificationPrefs) => {
     setIsLoading(true);
     try {
-      await simulateAPI(prefs);
-      setNotifications(prefs);
-      setStored('notifications', prefs);
+      const res = await fetch('/api/user', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notification_prefs: prefs }),
+      });
+      if (res.ok) await refreshUser();
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [refreshUser]);
 
   const updateScoring = useCallback(async (thresholds: ScoringThresholds) => {
     setIsLoading(true);
     try {
-      await simulateAPI(thresholds);
-      setScoring(thresholds);
-      setStored('scoring', thresholds);
+      const res = await fetch('/api/user', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scoring_thresholds: thresholds }),
+      });
+      if (res.ok) await refreshUser();
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [refreshUser]);
 
   const regenerateApiKey = useCallback(async (type: 'live' | 'test') => {
     setIsLoading(true);
     try {
-      await simulateAPI(true, { delay: 800 });
       const prefix = type === 'live' ? 'sk_live_' : 'sk_test_';
       const newKey = generateApiKey(prefix);
-      setApiKeys(prev => {
-        const updated = type === 'live' ? { ...prev, liveKey: newKey } : { ...prev, testKey: newKey };
-        setStored('apikeys', updated);
-        return updated;
-      });
+      // TODO: Persist live key to server when endpoint is available
       return newKey;
     } finally {
       setIsLoading(false);
@@ -124,18 +116,22 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const saveWebhook = useCallback(async (config: WebhookConfig) => {
     setIsLoading(true);
     try {
-      await simulateAPI(config);
-      setWebhook(config);
-      setStored('webhook', config);
+      const res = await fetch('/api/user', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ webhook_config: config }),
+      });
+      if (res.ok) await refreshUser();
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [refreshUser]);
 
   const testWebhook = useCallback(async () => {
     setIsLoading(true);
     try {
-      await simulateAPI(true, { delay: 2000, failRate: 0.1 });
+      // TODO: Add real webhook testing endpoint
+      await new Promise(resolve => setTimeout(resolve, 2000));
       return true;
     } catch {
       return false;
@@ -147,9 +143,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const deleteAccount = useCallback(async () => {
     setIsLoading(true);
     try {
-      await simulateAPI(true, { delay: 1000, failRate: 0 });
-      clearAll();
-      logout();
+      const res = await fetch('/api/user', { method: 'DELETE' });
+      if (res.ok) logout();
     } finally {
       setIsLoading(false);
     }

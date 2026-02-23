@@ -1,20 +1,50 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import { simulateAPI, generateId } from '@/lib/api';
-import { getStored, setStored, removeStored } from '@/lib/storage';
-import { DEMO_USER, DEMO_PASSWORD } from '@/lib/mock-data';
-import type { User, PlanTier } from '@/lib/types';
+import { useUser, useClerk } from '@clerk/nextjs';
+import type { PlanTier } from '@/lib/types';
+
+export interface BouncerUser {
+  id: string;
+  clerk_id: string;
+  email: string;
+  name: string | null;
+  avatar_url: string | null;
+  company_name: string | null;
+  company_website: string | null;
+  team_size: string | null;
+  plan: PlanTier;
+  validations_used: number;
+  onboarding_completed: boolean;
+  onboarding_step: number;
+  scoring_thresholds: {
+    passedMin: number;
+    borderlineMin: number;
+    blockRejected: boolean;
+    rejectionMessage: string;
+  };
+  notification_prefs: {
+    emailDigest: boolean;
+    weeklyReport: boolean;
+    validationAlerts: boolean;
+    usageLimitAlerts: boolean;
+  };
+  webhook_config: {
+    url: string;
+    events: string[];
+    active: boolean;
+  };
+  api_key: string | null;
+  created_at: string;
+}
 
 interface AuthContextType {
-  user: User | null;
+  user: BouncerUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
   logout: () => void;
-  updateUser: (updates: Partial<User>) => void;
+  refreshUser: () => Promise<void>;
+  updateUser: (updates: Partial<BouncerUser>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -26,95 +56,55 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const { isLoaded, isSignedIn } = useUser();
+  const { signOut } = useClerk();
+  const [bouncerUser, setBouncerUser] = useState<BouncerUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Restore session on mount
-  useEffect(() => {
-    const stored = getStored<User | null>('user', null);
-    setUser(stored);
-    setIsLoading(false);
-  }, []);
-
-  // Persist user changes
-  useEffect(() => {
-    if (user) {
-      setStored('user', user);
+  const fetchBouncerUser = useCallback(async () => {
+    if (!isSignedIn) {
+      setBouncerUser(null);
+      setIsLoading(false);
+      return;
     }
-  }, [user]);
 
-  const login = useCallback(async (email: string, password: string) => {
-    setIsLoading(true);
     try {
-      if (email === DEMO_USER.email && password === DEMO_PASSWORD) {
-        const userData = await simulateAPI(DEMO_USER, { failRate: 0 });
-        setUser(userData);
-        return;
+      const res = await fetch('/api/user');
+      if (res.ok) {
+        const data = await res.json();
+        setBouncerUser(data);
+      } else {
+        setBouncerUser(null);
       }
-      const stored = getStored<User | null>('user', null);
-      if (stored && stored.email === email) {
-        const userData = await simulateAPI(stored, { failRate: 0 });
-        setUser(userData);
-        return;
-      }
-      throw new Error('Invalid email or password');
+    } catch {
+      setBouncerUser(null);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isSignedIn]);
 
-  const signup = useCallback(async (email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      const newUser: User = await simulateAPI({
-        id: generateId(),
-        email,
-        firstName: '',
-        lastName: '',
-        company: '',
-        plan: 'free' as PlanTier,
-        onboardingCompleted: false,
-        emailVerified: true,
-        createdAt: new Date().toISOString(),
-      }, { failRate: 0 });
-      setUser(newUser);
-    } finally {
-      setIsLoading(false);
+  useEffect(() => {
+    if (isLoaded) {
+      fetchBouncerUser();
     }
-  }, []);
-
-  const loginWithGoogle = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const userData = await simulateAPI({
-        ...DEMO_USER,
-        id: generateId(),
-        onboardingCompleted: false,
-      }, { delay: 1000, failRate: 0 });
-      setUser(userData);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  }, [isLoaded, isSignedIn, fetchBouncerUser]);
 
   const logout = useCallback(() => {
-    setUser(null);
-    removeStored('user');
-  }, []);
+    signOut();
+    setBouncerUser(null);
+  }, [signOut]);
 
-  const updateUser = useCallback((updates: Partial<User>) => {
-    setUser(prev => prev ? { ...prev, ...updates } : null);
+  const updateUser = useCallback((updates: Partial<BouncerUser>) => {
+    setBouncerUser(prev => prev ? { ...prev, ...updates } : null);
   }, []);
 
   return (
     <AuthContext.Provider value={{
-      user,
-      isLoading,
-      isAuthenticated: !!user,
-      login,
-      signup,
-      loginWithGoogle,
+      user: bouncerUser,
+      isLoading: !isLoaded || isLoading,
+      isAuthenticated: !!bouncerUser,
       logout,
+      refreshUser: fetchBouncerUser,
       updateUser,
     }}>
       {children}

@@ -1,8 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import { simulateAPI } from '@/lib/api';
-import { getStored, setStored } from '@/lib/storage';
+import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import type { CompanyProfile, OnboardingState, ScoringThresholds } from '@/lib/types';
 
@@ -11,15 +9,6 @@ const DEFAULT_THRESHOLDS: ScoringThresholds = {
   borderlineMin: 40,
   blockRejected: false,
   rejectionMessage: 'Sorry, we could not verify your submission. Please try again or contact support.',
-};
-
-const DEFAULT_STATE: OnboardingState = {
-  currentStep: 1,
-  completedSteps: [],
-  companyProfile: null,
-  snippetVerified: false,
-  crmConnected: null,
-  thresholds: DEFAULT_THRESHOLDS,
 };
 
 interface OnboardingContextType {
@@ -43,54 +32,73 @@ export function useOnboarding() {
 }
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
-  const { updateUser } = useAuth();
-  const [state, setState] = useState<OnboardingState>(DEFAULT_STATE);
+  const { user, updateUser, refreshUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    const stored = getStored<OnboardingState>('onboarding', DEFAULT_STATE);
-    setState(stored);
-  }, []);
-
-  useEffect(() => {
-    setStored('onboarding', state);
-  }, [state]);
+  const state: OnboardingState = {
+    currentStep: user?.onboarding_step ?? 1,
+    completedSteps: Array.from({ length: (user?.onboarding_step ?? 1) - 1 }, (_, i) => i + 1),
+    companyProfile: user?.company_name ? {
+      companyName: user.company_name,
+      website: user.company_website || '',
+      teamSize: user.team_size || '',
+      crm: '',
+    } : null,
+    snippetVerified: (user?.onboarding_step ?? 1) > 2,
+    crmConnected: (user?.onboarding_step ?? 1) > 3 ? 'connected' : null,
+    thresholds: user?.scoring_thresholds ?? DEFAULT_THRESHOLDS,
+  };
 
   const completeStep = useCallback((step: number) => {
-    setState(prev => ({
-      ...prev,
-      completedSteps: prev.completedSteps.includes(step) ? prev.completedSteps : [...prev.completedSteps, step],
-      currentStep: Math.max(prev.currentStep, step + 1),
-    }));
-  }, []);
+    const nextStep = step + 1;
+    fetch('/api/user/onboarding', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ onboarding_step: nextStep }),
+    }).then(() => {
+      updateUser({ onboarding_step: nextStep });
+    });
+  }, [updateUser]);
 
   const saveCompanyProfile = useCallback(async (profile: CompanyProfile) => {
     setIsLoading(true);
     try {
-      await simulateAPI(profile, { failRate: 0 });
-      setState(prev => ({ ...prev, companyProfile: profile }));
-      completeStep(1);
+      const res = await fetch('/api/user/onboarding', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          company_name: profile.companyName,
+          company_website: profile.website,
+          team_size: profile.teamSize,
+          onboarding_step: 2,
+        }),
+      });
+      if (res.ok) await refreshUser();
+    } finally {
+      setIsLoading(false);
+    }
+  }, [refreshUser]);
+
+  const verifySnippet = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      // TODO: Add real snippet verification endpoint
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      completeStep(2);
+      return true;
     } finally {
       setIsLoading(false);
     }
   }, [completeStep]);
 
-  const verifySnippet = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      await simulateAPI(true, { delay: 1500, failRate: 0 });
-      setState(prev => ({ ...prev, snippetVerified: true }));
-      return true;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   const connectCRM = useCallback(async (provider: string) => {
     setIsLoading(true);
     try {
-      await simulateAPI(provider, { delay: 1500, failRate: 0 });
-      setState(prev => ({ ...prev, crmConnected: provider }));
+      await fetch('/api/integrations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider, name: provider, field_mappings: [] }),
+      });
       completeStep(3);
     } finally {
       setIsLoading(false);
@@ -104,23 +112,30 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const saveThresholds = useCallback(async (thresholds: ScoringThresholds) => {
     setIsLoading(true);
     try {
-      await simulateAPI(thresholds, { failRate: 0 });
-      setState(prev => ({ ...prev, thresholds }));
-      completeStep(4);
+      const res = await fetch('/api/user/onboarding', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scoring_thresholds: thresholds, onboarding_step: 5 }),
+      });
+      if (res.ok) await refreshUser();
     } finally {
       setIsLoading(false);
     }
-  }, [completeStep]);
+  }, [refreshUser]);
 
   const completeOnboarding = useCallback(async () => {
     setIsLoading(true);
     try {
-      await simulateAPI(true, { failRate: 0 });
-      updateUser({ onboardingCompleted: true });
+      const res = await fetch('/api/user/onboarding', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ onboarding_completed: true }),
+      });
+      if (res.ok) await refreshUser();
     } finally {
       setIsLoading(false);
     }
-  }, [updateUser]);
+  }, [refreshUser]);
 
   return (
     <OnboardingContext.Provider value={{

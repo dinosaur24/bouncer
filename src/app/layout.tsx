@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Inter } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { RouteGuard } from "@/components/RouteGuard";
 import "./globals.css";
@@ -26,16 +27,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${spaceGrotesk.variable} ${inter.variable} antialiased`}
-      >
-        <AuthProvider>
-          <RouteGuard>
-            {children}
-          </RouteGuard>
-        </AuthProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body
+          className={`${spaceGrotesk.variable} ${inter.variable} antialiased`}
+        >
+          <AuthProvider>
+            <RouteGuard>
+              {children}
+            </RouteGuard>
+          </AuthProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

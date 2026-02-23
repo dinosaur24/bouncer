@@ -1,9 +1,6 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import { simulateAPI, generateId } from '@/lib/api';
-import { getStored, setStored } from '@/lib/storage';
-import { generateSources } from '@/lib/mock-data';
 import type { FormSource } from '@/lib/types';
 
 interface SourcesContextType {
@@ -28,30 +25,54 @@ export function SourcesProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    setSources(getStored('sources', generateSources()));
+    async function loadSources() {
+      try {
+        const res = await fetch('/api/forms');
+        if (res.ok) {
+          const data = await res.json();
+          setSources(data.map((f: Record<string, unknown>) => ({
+            id: f.id,
+            title: f.name,
+            domain: f.domain,
+            status: f.is_active ? 'Active' : 'Paused',
+            description: f.description || '',
+            submissions: 0,
+            passRate: 0,
+            avgScore: 0,
+            lastSubmission: 'Never',
+            snippetId: f.form_key,
+          })));
+        }
+      } catch {
+        // silently fail
+      }
+    }
+    loadSources();
   }, []);
 
   const addSource = useCallback(async (data: { title: string; domain: string; description: string }) => {
     setIsLoading(true);
     try {
-      await simulateAPI(true);
-      const newSource: FormSource = {
-        id: generateId(),
-        title: data.title,
-        domain: data.domain,
-        status: 'Active',
-        description: data.description,
-        submissions: 0,
-        passRate: 0,
-        avgScore: 0,
-        lastSubmission: 'Never',
-        snippetId: 'snp_' + generateId(),
-      };
-      setSources(prev => {
-        const updated = [...prev, newSource];
-        setStored('sources', updated);
-        return updated;
+      const res = await fetch('/api/forms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: data.title, domain: data.domain, description: data.description }),
       });
+      if (res.ok) {
+        const f = await res.json();
+        setSources(prev => [...prev, {
+          id: f.id,
+          title: f.name,
+          domain: f.domain,
+          status: f.is_active ? 'Active' : 'Paused',
+          description: f.description || '',
+          submissions: 0,
+          passRate: 0,
+          avgScore: 0,
+          lastSubmission: 'Never',
+          snippetId: f.form_key,
+        }]);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -60,12 +81,20 @@ export function SourcesProvider({ children }: { children: ReactNode }) {
   const updateSource = useCallback(async (id: string, data: Partial<FormSource>) => {
     setIsLoading(true);
     try {
-      await simulateAPI(true);
-      setSources(prev => {
-        const updated = prev.map(s => s.id === id ? { ...s, ...data } : s);
-        setStored('sources', updated);
-        return updated;
+      const apiData: Record<string, unknown> = {};
+      if (data.title !== undefined) apiData.name = data.title;
+      if (data.domain !== undefined) apiData.domain = data.domain;
+      if (data.description !== undefined) apiData.description = data.description;
+      if (data.status !== undefined) apiData.is_active = data.status === 'Active';
+
+      const res = await fetch(`/api/forms/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(apiData),
       });
+      if (res.ok) {
+        setSources(prev => prev.map(s => s.id === id ? { ...s, ...data } : s));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -74,12 +103,10 @@ export function SourcesProvider({ children }: { children: ReactNode }) {
   const deleteSource = useCallback(async (id: string) => {
     setIsLoading(true);
     try {
-      await simulateAPI(true);
-      setSources(prev => {
-        const updated = prev.filter(s => s.id !== id);
-        setStored('sources', updated);
-        return updated;
-      });
+      const res = await fetch(`/api/forms/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setSources(prev => prev.filter(s => s.id !== id));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -88,18 +115,23 @@ export function SourcesProvider({ children }: { children: ReactNode }) {
   const toggleSourceStatus = useCallback(async (id: string) => {
     setIsLoading(true);
     try {
-      await simulateAPI(true);
-      setSources(prev => {
-        const updated = prev.map(s =>
-          s.id === id ? { ...s, status: (s.status === 'Active' ? 'Paused' : 'Active') as FormSource['status'] } : s
-        );
-        setStored('sources', updated);
-        return updated;
+      const source = sources.find(s => s.id === id);
+      if (!source) return;
+      const newActive = source.status !== 'Active';
+      const res = await fetch(`/api/forms/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: newActive }),
       });
+      if (res.ok) {
+        setSources(prev => prev.map(s =>
+          s.id === id ? { ...s, status: newActive ? 'Active' as const : 'Paused' as const } : s
+        ));
+      }
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [sources]);
 
   return (
     <SourcesContext.Provider value={{ sources, isLoading, addSource, updateSource, deleteSource, toggleSourceStatus }}>

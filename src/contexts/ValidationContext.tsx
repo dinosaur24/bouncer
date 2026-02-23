@@ -1,9 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
-import { simulateAPI } from '@/lib/api';
-import { getStored, setStored } from '@/lib/storage';
-import { generateValidations, generateValidation, generateDashboardStats, generateChartData } from '@/lib/mock-data';
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { Validation, DashboardStats, ChartDataPoint, ValidationStatus } from '@/lib/types';
 
 interface ValidationFilters {
@@ -42,45 +39,41 @@ export function ValidationProvider({ children }: { children: ReactNode }) {
   });
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const stored = getStored<Validation[]>('validations', []);
-    const data = stored.length > 0 ? stored : generateValidations(50);
-    setValidations(data);
-    setStats(generateDashboardStats(data));
-    setChartData(generateChartData(7));
-    setIsLoading(false);
-    if (stored.length === 0) setStored('validations', data);
-  }, []);
-
-  useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      const newValidation = generateValidation();
-      setValidations(prev => {
-        const updated = [newValidation, ...prev].slice(0, 100);
-        setStored('validations', updated);
-        setStats(generateDashboardStats(updated));
-        return updated;
-      });
-    }, 15000 + Math.random() * 15000);
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+    async function loadData() {
+      try {
+        const [validationsRes, statsRes, chartRes] = await Promise.all([
+          fetch('/api/validations'),
+          fetch('/api/validations/stats'),
+          fetch('/api/validations/chart?days=7'),
+        ]);
+        if (validationsRes.ok) setValidations(await validationsRes.json());
+        if (statsRes.ok) setStats(await statsRes.json());
+        if (chartRes.ok) setChartData(await chartRes.json());
+      } catch {
+        // silently fail — user may not be authenticated yet
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
   }, []);
 
   const fetchValidations = useCallback(async (filters?: ValidationFilters) => {
     setIsLoading(true);
     try {
-      let filtered = [...validations];
-      if (filters?.search) {
-        const q = filters.search.toLowerCase();
-        filtered = filtered.filter(v =>
-          v.email.toLowerCase().includes(q) || v.company.toLowerCase().includes(q) || v.source.toLowerCase().includes(q)
-        );
+      const params = new URLSearchParams();
+      if (filters?.search) params.set('search', filters.search);
+      if (filters?.status && filters.status !== 'all') params.set('status', filters.status);
+      if (filters?.source) params.set('source', filters.source);
+      const res = await fetch(`/api/validations?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        setValidations(data);
+        return data;
       }
-      if (filters?.status && filters.status !== 'all') {
-        filtered = filtered.filter(v => v.status === filters.status);
-      }
-      return await simulateAPI(filtered, { failRate: 0, delay: 300 });
+      return validations;
     } finally {
       setIsLoading(false);
     }
@@ -91,17 +84,30 @@ export function ValidationProvider({ children }: { children: ReactNode }) {
   }, [validations]);
 
   const overrideValidation = useCallback(async (id: string) => {
-    await simulateAPI(true);
-    setValidations(prev => {
-      const updated = prev.map(v =>
-        v.id === id ? { ...v, status: 'Passed' as ValidationStatus, overridden: true } : v
+    const res = await fetch(`/api/validations/${id}/override`, { method: 'PATCH' });
+    if (res.ok) {
+      setValidations(prev =>
+        prev.map(v => v.id === id ? { ...v, status: 'Passed' as ValidationStatus, overridden: true } : v)
       );
-      setStored('validations', updated);
-      return updated;
-    });
+    }
   }, []);
 
-  const exportCSV = useCallback(() => {
+  const exportCSV = useCallback(async () => {
+    try {
+      const res = await fetch('/api/validations/export');
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `bouncer-validations-${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        return;
+      }
+    } catch {
+      // fall through to client-side export
+    }
     const headers = 'Email,Score,Status,Source,Time,IP,Phone,Company\n';
     const rows = validations.map(v =>
       `${v.email},${v.score},${v.status},${v.source},${v.timestamp},${v.ip},${v.phone},${v.company}`
@@ -115,15 +121,8 @@ export function ValidationProvider({ children }: { children: ReactNode }) {
     URL.revokeObjectURL(url);
   }, [validations]);
 
-  const addValidation = useCallback(() => {
-    const newValidation = generateValidation();
-    setValidations(prev => {
-      const updated = [newValidation, ...prev].slice(0, 100);
-      setStored('validations', updated);
-      setStats(generateDashboardStats(updated));
-      return updated;
-    });
-  }, []);
+  // No-op in production — was used for mock data simulation
+  const addValidation = useCallback(() => {}, []);
 
   const rejectionReasons = [
     { label: 'Disposable email detected', percentage: 34 },

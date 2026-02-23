@@ -21,8 +21,8 @@ export function Nav() {
   // AuthProvider wraps the entire app in root layout, so this should always work
   const { user, isAuthenticated, logout } = useAuth();
 
-  const userInitial = user?.firstName
-    ? user.firstName[0].toUpperCase()
+  const userInitial = user?.name
+    ? user.name[0].toUpperCase()
     : user?.email
       ? user.email[0].toUpperCase()
       : "U";

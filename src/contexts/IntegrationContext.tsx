@@ -1,9 +1,6 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import { simulateAPI } from '@/lib/api';
-import { getStored, setStored } from '@/lib/storage';
-import { generateDefaultConnections } from '@/lib/mock-data';
 import type { CRMConnection, FieldMapping } from '@/lib/types';
 
 const DEFAULT_MAPPINGS: FieldMapping[] = [
@@ -38,39 +35,93 @@ export function IntegrationProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    setConnections(getStored('integrations', generateDefaultConnections()));
-    setFieldMappings(getStored('fieldMappings', DEFAULT_MAPPINGS));
+    async function loadIntegrations() {
+      try {
+        const res = await fetch('/api/integrations');
+        if (res.ok) {
+          const data = await res.json();
+          setConnections(data.map((i: Record<string, unknown>) => ({
+            id: i.id,
+            provider: i.provider,
+            name: i.name,
+            status: i.status,
+            connectedAt: i.connected_at,
+            lastSyncAt: i.last_sync_at,
+          })));
+          const connected = data.find(
+            (i: Record<string, unknown>) => i.status === 'connected' && Array.isArray(i.field_mappings) && (i.field_mappings as unknown[]).length > 0
+          );
+          if (connected) setFieldMappings(connected.field_mappings as FieldMapping[]);
+        }
+      } catch {
+        // silently fail
+      }
+    }
+    loadIntegrations();
   }, []);
 
   const connectCRM = useCallback(async (provider: string) => {
     setIsLoading(true);
     try {
-      await simulateAPI(true, { delay: 1500, failRate: 0 });
-      setConnections(prev => {
-        const updated = prev.map(c =>
-          c.provider === provider
-            ? { ...c, status: 'connected' as const, connectedAt: new Date().toISOString(), lastSyncAt: new Date().toISOString() }
-            : c
-        );
-        setStored('integrations', updated);
-        return updated;
-      });
+      const existing = connections.find(c => c.provider === provider);
+      if (existing) {
+        const res = await fetch(`/api/integrations/${existing.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'connected' }),
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setConnections(prev => prev.map(c =>
+            c.id === existing.id
+              ? { ...c, status: 'connected' as const, connectedAt: updated.connected_at, lastSyncAt: updated.last_sync_at }
+              : c
+          ));
+        }
+      } else {
+        const providerNames: Record<string, string> = {
+          hubspot: 'HubSpot', salesforce: 'Salesforce', pipedrive: 'Pipedrive',
+          webhook: 'Webhook', zapier: 'Zapier', slack: 'Slack',
+        };
+        const res = await fetch('/api/integrations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            provider,
+            name: providerNames[provider] || provider,
+            field_mappings: fieldMappings,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setConnections(prev => [...prev, {
+            id: data.id,
+            provider: data.provider,
+            name: data.name,
+            status: data.status,
+            connectedAt: data.connected_at,
+            lastSyncAt: data.last_sync_at,
+          }]);
+        }
+      }
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [connections, fieldMappings]);
 
   const disconnectCRM = useCallback(async (id: string) => {
     setIsLoading(true);
     try {
-      await simulateAPI(true);
-      setConnections(prev => {
-        const updated = prev.map(c =>
-          c.id === id ? { ...c, status: 'disconnected' as const, connectedAt: undefined, lastSyncAt: undefined } : c
-        );
-        setStored('integrations', updated);
-        return updated;
+      const res = await fetch(`/api/integrations/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'disconnected' }),
       });
+      if (res.ok) {
+        setConnections(prev => prev.map(c =>
+          c.id === id ? { ...c, status: 'disconnected' as const, connectedAt: undefined, lastSyncAt: undefined } : c
+        ));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -79,16 +130,23 @@ export function IntegrationProvider({ children }: { children: ReactNode }) {
   const saveFieldMappings = useCallback(async (mappings: FieldMapping[]) => {
     setIsLoading(true);
     try {
-      await simulateAPI(true);
+      const connected = connections.filter(c => c.status === 'connected');
+      await Promise.all(connected.map(c =>
+        fetch(`/api/integrations/${c.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ field_mappings: mappings }),
+        })
+      ));
       setFieldMappings(mappings);
-      setStored('fieldMappings', mappings);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [connections]);
 
-  const testConnection = useCallback(async (id: string) => {
-    await simulateAPI(true, { delay: 2000, failRate: 0.1 });
+  const testConnection = useCallback(async (_id: string) => {
+    // TODO: Add real connection testing endpoint
+    await new Promise(resolve => setTimeout(resolve, 2000));
     return true;
   }, []);
 
