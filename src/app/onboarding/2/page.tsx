@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { Copy, CheckCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Copy, CheckCircle, Loader2 } from "lucide-react";
+import { useOnboarding } from "@/contexts/OnboardingContext";
 
 const snippets = {
   html: `<script
@@ -49,7 +50,10 @@ type Tab = "html" | "react" | "nextjs";
 export default function InstallSnippetPage() {
   const [activeTab, setActiveTab] = useState<Tab>("html");
   const [copied, setCopied] = useState(false);
-  const [tested, setTested] = useState(false);
+
+  const { verifySnippet, state, isLoading, completeStep } = useOnboarding();
+  const [verified, setVerified] = useState(state.snippetVerified);
+  const router = useRouter();
 
   const tabs: { key: Tab; label: string }[] = [
     { key: "html", label: "HTML" },
@@ -63,8 +67,14 @@ export default function InstallSnippetPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleTest = () => {
-    setTested(true);
+  const handleTest = async () => {
+    const result = await verifySnippet();
+    setVerified(result);
+  };
+
+  const handleContinue = () => {
+    completeStep(2);
+    router.push("/onboarding/3");
   };
 
   return (
@@ -121,25 +131,38 @@ export default function InstallSnippetPage() {
       {/* Test installation button */}
       <button
         onClick={handleTest}
+        disabled={isLoading}
         className={`mt-4 w-full border font-heading text-[13px] font-medium py-2.5 flex items-center justify-center gap-2 transition-colors ${
-          tested
+          verified
             ? "border-green text-green"
             : "border-border text-dark hover:border-dark"
         }`}
       >
-        <CheckCircle className="w-4 h-4" />
-        {tested
-          ? "Snippet detected on your site"
-          : "Test my installation"}
+        {isLoading ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Checking...
+          </>
+        ) : verified ? (
+          <>
+            <CheckCircle className="w-4 h-4" />
+            Snippet verified!
+          </>
+        ) : (
+          <>
+            <CheckCircle className="w-4 h-4" />
+            Test my installation
+          </>
+        )}
       </button>
 
       {/* Continue button */}
-      <Link
-        href="/onboarding/3"
+      <button
+        onClick={handleContinue}
         className="mt-6 w-full bg-dark text-white font-heading text-[13px] font-medium py-2.5 text-center block"
       >
         Continue
-      </Link>
+      </button>
     </div>
   );
 }

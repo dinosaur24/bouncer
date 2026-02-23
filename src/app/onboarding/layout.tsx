@@ -2,14 +2,12 @@
 
 import { usePathname } from "next/navigation";
 import { Check } from "lucide-react";
+import { OnboardingProvider, useOnboarding } from "@/contexts/OnboardingContext";
 
-export default function OnboardingLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function OnboardingLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const currentStep = parseInt(pathname.split("/").pop() || "1", 10);
+  const { state } = useOnboarding();
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -30,14 +28,14 @@ export default function OnboardingLayout({
             {/* Step circle */}
             <div
               className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-heading font-medium ${
-                step < currentStep
+                state.completedSteps.includes(step)
                   ? "bg-green text-white"
                   : step === currentStep
                     ? "bg-dark text-white"
                     : "bg-border text-gray"
               }`}
             >
-              {step < currentStep ? (
+              {state.completedSteps.includes(step) ? (
                 <Check className="w-3.5 h-3.5" strokeWidth={3} />
               ) : (
                 step
@@ -48,7 +46,7 @@ export default function OnboardingLayout({
             {index < 3 && (
               <div
                 className={`w-8 md:w-12 h-0.5 ${
-                  step < currentStep ? "bg-green" : "bg-border"
+                  state.completedSteps.includes(step) ? "bg-green" : "bg-border"
                 }`}
               />
             )}
@@ -61,5 +59,13 @@ export default function OnboardingLayout({
         {children}
       </div>
     </div>
+  );
+}
+
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <OnboardingProvider>
+      <OnboardingLayout>{children}</OnboardingLayout>
+    </OnboardingProvider>
   );
 }

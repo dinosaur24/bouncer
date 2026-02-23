@@ -1,14 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ChevronDown, Loader2 } from "lucide-react";
+import { useOnboarding } from "@/contexts/OnboardingContext";
 
 export default function CompanyProfilePage() {
   const [companyName, setCompanyName] = useState("");
   const [website, setWebsite] = useState("");
   const [teamSize, setTeamSize] = useState("");
   const [crm, setCrm] = useState("");
+
+  const { saveCompanyProfile, isLoading } = useOnboarding();
+  const router = useRouter();
+
+  const handleContinue = async () => {
+    if (!companyName.trim() || !website.trim()) return;
+    await saveCompanyProfile({ companyName, website, teamSize, crm });
+    router.push("/onboarding/2");
+  };
+
+  const isValid = companyName.trim() !== "" && website.trim() !== "";
 
   const inputClasses =
     "w-full border border-border px-4 py-2.5 text-[13px] text-dark font-heading bg-white focus:outline-none focus:border-dark transition-colors";
@@ -22,7 +34,7 @@ export default function CompanyProfilePage() {
         This helps us tailor Bouncer to your needs.
       </p>
 
-      <form className="mt-8 flex flex-col gap-5">
+      <form className="mt-8 flex flex-col gap-5" onSubmit={(e) => { e.preventDefault(); handleContinue(); }}>
         {/* Company name */}
         <div>
           <label className="block text-[13px] font-heading font-medium text-dark mb-1.5">
@@ -98,12 +110,20 @@ export default function CompanyProfilePage() {
         </div>
 
         {/* Continue button */}
-        <Link
-          href="/onboarding/2"
-          className="mt-6 w-full bg-dark text-white font-heading text-[13px] font-medium py-2.5 text-center block"
+        <button
+          type="submit"
+          disabled={!isValid || isLoading}
+          className="mt-6 w-full bg-dark text-white font-heading text-[13px] font-medium py-2.5 text-center block disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          Continue
-        </Link>
+          {isLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            "Continue"
+          )}
+        </button>
       </form>
     </div>
   );

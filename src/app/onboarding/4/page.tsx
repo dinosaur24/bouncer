@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import { useOnboarding } from "@/contexts/OnboardingContext";
 
 const thresholds = [
   {
@@ -26,6 +28,20 @@ const thresholds = [
 
 export default function SetThresholdsPage() {
   const [blockRejected, setBlockRejected] = useState(true);
+
+  const { saveThresholds, completeOnboarding, isLoading } = useOnboarding();
+  const router = useRouter();
+
+  const handleFinish = async () => {
+    await saveThresholds({
+      passedMin: 70,
+      borderlineMin: 40,
+      blockRejected,
+      rejectionMessage: '',
+    });
+    await completeOnboarding();
+    router.push("/dashboard");
+  };
 
   return (
     <div>
@@ -92,12 +108,20 @@ export default function SetThresholdsPage() {
       </div>
 
       {/* Finish setup button */}
-      <Link
-        href="/dashboard"
-        className="mt-8 w-full bg-dark text-white font-heading text-[13px] font-medium py-2.5 text-center block"
+      <button
+        onClick={handleFinish}
+        disabled={isLoading}
+        className="mt-8 w-full bg-dark text-white font-heading text-[13px] font-medium py-2.5 text-center block disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
-        Finish setup
-      </Link>
+        {isLoading ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Setting up...
+          </>
+        ) : (
+          "Finish setup"
+        )}
+      </button>
     </div>
   );
 }

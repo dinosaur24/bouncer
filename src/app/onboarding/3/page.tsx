@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Loader2, Check } from "lucide-react";
+import { useOnboarding } from "@/contexts/OnboardingContext";
 
 const crms = [
   {
@@ -32,6 +34,21 @@ const crms = [
 
 export default function ConnectCRMPage() {
   const [selectedCRM, setSelectedCRM] = useState("hubspot");
+  const [connectingProvider, setConnectingProvider] = useState<string | null>(null);
+
+  const { connectCRM, skipCRM, state, isLoading } = useOnboarding();
+  const router = useRouter();
+
+  const handleConnect = async (provider: string) => {
+    setConnectingProvider(provider);
+    await connectCRM(provider);
+    router.push("/onboarding/4");
+  };
+
+  const handleSkip = () => {
+    skipCRM();
+    router.push("/onboarding/4");
+  };
 
   return (
     <div>
@@ -48,11 +65,12 @@ export default function ConnectCRMPage() {
           <button
             key={crm.id}
             onClick={() => setSelectedCRM(crm.id)}
+            disabled={isLoading}
             className={`border p-4 flex items-center gap-4 cursor-pointer transition-colors text-left ${
               selectedCRM === crm.id
                 ? "border-brand border-2"
                 : "border-border"
-            }`}
+            } ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}
           >
             {/* Icon */}
             <div
@@ -73,30 +91,50 @@ export default function ConnectCRMPage() {
                     Recommended
                   </span>
                 )}
+                {state.crmConnected === crm.id && (
+                  <span className="bg-green/10 text-green text-xs font-heading font-medium px-2 py-0.5 rounded flex items-center gap-1">
+                    <Check className="w-3 h-3" />
+                    Connected
+                  </span>
+                )}
               </div>
               <p className="text-[13px] text-gray mt-0.5">
                 {crm.description}
               </p>
             </div>
+
+            {/* Loading spinner for the connecting card */}
+            {connectingProvider === crm.id && isLoading && (
+              <Loader2 className="w-5 h-5 animate-spin text-gray shrink-0" />
+            )}
           </button>
         ))}
       </div>
 
       {/* Connect & continue button */}
-      <Link
-        href="/onboarding/4"
-        className="mt-8 w-full bg-dark text-white font-heading text-[13px] font-medium py-2.5 text-center block"
+      <button
+        onClick={() => handleConnect(selectedCRM)}
+        disabled={isLoading}
+        className="mt-8 w-full bg-dark text-white font-heading text-[13px] font-medium py-2.5 text-center block disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
-        Connect & continue
-      </Link>
+        {isLoading ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Connecting...
+          </>
+        ) : (
+          "Connect & continue"
+        )}
+      </button>
 
       {/* Skip for now */}
-      <Link
-        href="/onboarding/4"
-        className="mt-3 block text-center text-sm text-gray hover:text-dark transition-colors"
+      <button
+        onClick={handleSkip}
+        disabled={isLoading}
+        className="mt-3 block w-full text-center text-sm text-gray hover:text-dark transition-colors disabled:opacity-50"
       >
         Skip for now
-      </Link>
+      </button>
     </div>
   );
 }
