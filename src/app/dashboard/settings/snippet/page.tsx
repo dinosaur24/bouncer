@@ -3,32 +3,8 @@
 import { useState } from "react";
 import { Copy, Check, CheckCircle, Loader2 } from "lucide-react";
 import { simulateAPI } from "@/lib/api";
-
-const snippets: Record<string, string> = {
-  HTML: `<script
-  src="https://cdn.bouncer.io/snippet.js"
-  data-token="bnc_sk_abc0ef"
-  data-config="auto_validate"
-  async>
-</script>`,
-  React: `import { useEffect } from 'react';
-
-useEffect(() => {
-  const script = document.createElement('script');
-  script.src = 'https://cdn.bouncer.io/snippet.js';
-  script.dataset.token = 'bnc_sk_abc0ef';
-  script.async = true;
-  document.head.appendChild(script);
-  return () => { document.head.removeChild(script); };
-}, []);`,
-  "Next.js": `import Script from 'next/script';
-
-<Script
-  src="https://cdn.bouncer.io/snippet.js"
-  data-token="bnc_sk_abc0ef"
-  strategy="afterInteractive"
-/>`,
-};
+import { getHtmlSnippet, getReactSnippet, getNextSnippet, getFormKeyOrPlaceholder } from "@/lib/snippets";
+import { useSources } from "@/contexts/SourcesContext";
 
 const platformGuides: Record<string, string[]> = {
   HTML: [
@@ -59,6 +35,16 @@ const platformGuides: Record<string, string[]> = {
 };
 
 export default function SnippetPage() {
+  const { sources } = useSources();
+  const activeSource = sources.find(s => s.status === 'Active');
+  const formKey = getFormKeyOrPlaceholder(activeSource?.snippetId);
+
+  const snippets: Record<string, string> = {
+    HTML: getHtmlSnippet(formKey),
+    React: getReactSnippet(formKey),
+    "Next.js": getNextSnippet(formKey),
+  };
+
   const [codeTab, setCodeTab] = useState("HTML");
   const [guideTab, setGuideTab] = useState("HTML");
   const [copied, setCopied] = useState(false);
@@ -136,6 +122,14 @@ export default function SnippetPage() {
           </button>
         </div>
       </div>
+
+      {!activeSource && (
+        <div className="bg-[#FEF3C7] p-4 rounded-lg">
+          <p className="text-[13px] text-[#92400E]">
+            This snippet uses a placeholder key. Go to Sources to create a source and get your real form key.
+          </p>
+        </div>
+      )}
 
       {/* Verification */}
       <div className="flex flex-col md:flex-row md:items-center gap-3">
