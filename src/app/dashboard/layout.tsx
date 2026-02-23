@@ -15,7 +15,11 @@ import {
 import { useState } from "react";
 import { ToastProvider } from "@/components/Toast";
 import { ValidationProvider } from "@/contexts/ValidationContext";
+import { BillingProvider } from "@/contexts/BillingContext";
+import { IntegrationProvider } from "@/contexts/IntegrationContext";
+import { TeamProvider } from "@/contexts/TeamContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBilling } from "@/contexts/BillingContext";
 
 const navItems = [
   { label: "Overview", href: "/dashboard", icon: LayoutGrid },
@@ -38,6 +42,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user } = useAuth();
+  const { usage, currentPlan } = useBilling();
 
   const isNavActive = (href: string) =>
     href === "/dashboard"
@@ -49,6 +54,9 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     ? user.firstName[0] + user.lastName[0]
     : user?.email ? user.email[0].toUpperCase() : 'U';
   const planLabel = user?.plan ? user.plan.charAt(0).toUpperCase() + user.plan.slice(1) + ' Plan' : 'Free Plan';
+
+  const isOnScalePlan = user?.plan === 'scale';
+  const nextTierLabel = user?.plan === 'free' ? 'Starter' : user?.plan === 'starter' ? 'Growth' : user?.plan === 'growth' ? 'Scale' : null;
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-white max-w-[1440px] mx-auto">
@@ -144,15 +152,53 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         <div className="flex flex-col gap-6">
           {/* Upgrade box */}
           <div className="bg-surface p-5 flex flex-col gap-4">
-            <span className="font-heading text-[13px] font-semibold text-dark">
-              Upgrade to Growth
-            </span>
-            <p className="text-xs text-gray leading-relaxed">
-              Unlock unlimited CRM integrations and 15K validations.
-            </p>
-            <button className="bg-brand text-white font-heading text-xs font-medium px-4 py-2.5 cursor-pointer hover:bg-brand/90 transition-colors w-full">
-              Upgrade
-            </button>
+            {/* Usage indicator */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-gray font-heading">
+                  Validations used
+                </span>
+                <span className="text-[11px] text-gray font-heading">
+                  {usage.percentage}%
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-white/60 overflow-hidden">
+                <div
+                  className={`h-full ${usage.percentage > 90 ? "bg-brand" : "bg-dark"}`}
+                  style={{ width: `${Math.min(usage.percentage, 100)}%` }}
+                />
+              </div>
+              <span className="text-[10px] text-gray">
+                {usage.used.toLocaleString()} / {usage.limit >= 999999 ? "Unlimited" : usage.limit.toLocaleString()}
+              </span>
+            </div>
+
+            {nextTierLabel && (
+              <>
+                <span className="font-heading text-[13px] font-semibold text-dark">
+                  Upgrade to {nextTierLabel}
+                </span>
+                <p className="text-xs text-gray leading-relaxed">
+                  {user?.plan === 'free'
+                    ? 'Get 2,500 validations and all 4 signals.'
+                    : user?.plan === 'starter'
+                      ? 'Unlock unlimited CRM integrations and 15K validations.'
+                      : 'Get unlimited validations and API access.'}
+                </p>
+                <Link
+                  href="/dashboard/settings/billing"
+                  className="bg-brand text-white font-heading text-xs font-medium px-4 py-2.5 cursor-pointer hover:bg-brand/90 transition-colors w-full text-center"
+                >
+                  Upgrade
+                </Link>
+              </>
+            )}
+
+            {isOnScalePlan && (
+              <span className="font-heading text-[13px] font-semibold text-dark">
+                Scale Plan — Unlimited
+              </span>
+            )}
           </div>
 
           {/* User */}
@@ -210,10 +256,16 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ValidationProvider>
-      <ToastProvider>
-        <DashboardLayoutInner>{children}</DashboardLayoutInner>
-      </ToastProvider>
-    </ValidationProvider>
+    <BillingProvider>
+      <IntegrationProvider>
+        <TeamProvider>
+          <ValidationProvider>
+            <ToastProvider>
+              <DashboardLayoutInner>{children}</DashboardLayoutInner>
+            </ToastProvider>
+          </ValidationProvider>
+        </TeamProvider>
+      </IntegrationProvider>
+    </BillingProvider>
   );
 }

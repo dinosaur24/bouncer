@@ -1,37 +1,51 @@
 "use client";
 
 import { useState } from "react";
-
-const members = [
-  {
-    name: "Sara Martinez",
-    email: "sara@acme.com",
-    initials: "SM",
-    role: "Owner",
-    status: "Active",
-    joined: "Jun 15, 2025",
-  },
-  {
-    name: "Matej Novak",
-    email: "matej@acme.com",
-    initials: "MN",
-    role: "Admin",
-    status: "Active",
-    joined: "Jan 12, 2026",
-  },
-  {
-    name: "Marco Rossi",
-    email: "marco@acme.com",
-    initials: "MR",
-    role: "Member",
-    status: "Pending",
-    joined: "Invited Feb 23",
-  },
-];
+import { useTeam } from "@/contexts/TeamContext";
+import { useToast } from "@/components/Toast";
+import { Modal } from "@/components/Modal";
+import type { TeamMember } from "@/lib/types";
 
 export default function TeamPage() {
+  const { members, isLoading, inviteMember, removeMember } = useTeam();
+  const { addToast } = useToast();
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("Member");
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState<TeamMember | null>(null);
+
+  const handleInvite = async () => {
+    if (!inviteEmail) return;
+    await inviteMember(inviteEmail, inviteRole as TeamMember["role"]);
+    addToast("Invite sent to " + inviteEmail, "success");
+    setInviteEmail("");
+  };
+
+  const handleRemoveClick = (member: TeamMember) => {
+    setMemberToRemove(member);
+    setShowRemoveConfirm(true);
+  };
+
+  const handleConfirmRemove = async () => {
+    if (!memberToRemove) return;
+    setRemovingId(memberToRemove.id);
+    try {
+      await removeMember(memberToRemove.id);
+      addToast(`${memberToRemove.name} removed from team`, "success");
+    } catch {
+      addToast("Failed to remove member. Please try again.", "error");
+    } finally {
+      setRemovingId(null);
+      setShowRemoveConfirm(false);
+      setMemberToRemove(null);
+    }
+  };
+
+  const formatJoined = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  };
 
   return (
     <>
@@ -61,8 +75,16 @@ export default function TeamPage() {
             <option>Viewer</option>
           </select>
         </div>
-        <button className="bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-dark/90 cursor-pointer shrink-0">
-          Send invite
+        <button
+          onClick={handleInvite}
+          disabled={isLoading || !inviteEmail}
+          className="bg-dark text-white font-heading text-[13px] font-medium px-5 py-2.5 hover:bg-dark/90 cursor-pointer shrink-0 disabled:opacity-60"
+        >
+          {isLoading ? (
+            <span className="animate-pulse">Sending...</span>
+          ) : (
+            "Send invite"
+          )}
         </button>
       </div>
 
@@ -74,16 +96,17 @@ export default function TeamPage() {
 
         {/* Desktop table */}
         <div className="hidden md:block">
-          <div className="grid grid-cols-4 py-2.5 border-b border-border text-xs text-gray font-heading">
+          <div className="grid grid-cols-5 py-2.5 border-b border-border text-xs text-gray font-heading">
             <span>Member</span>
             <span>Role</span>
             <span>Status</span>
             <span>Joined</span>
+            <span></span>
           </div>
           {members.map((m) => (
             <div
-              key={m.email}
-              className="grid grid-cols-4 py-3 border-b border-border items-center"
+              key={m.id}
+              className="grid grid-cols-5 py-3 border-b border-border items-center"
             >
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-dark flex items-center justify-center shrink-0">
@@ -110,7 +133,18 @@ export default function TeamPage() {
               >
                 {m.status}
               </span>
-              <span className="text-[13px] text-gray">{m.joined}</span>
+              <span className="text-[13px] text-gray">{formatJoined(m.joinedAt)}</span>
+              <div>
+                {m.role !== "Owner" && (
+                  <button
+                    onClick={() => handleRemoveClick(m)}
+                    disabled={removingId === m.id}
+                    className="text-[13px] text-brand font-heading font-medium hover:underline cursor-pointer bg-transparent border-none p-0 disabled:opacity-60"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -119,7 +153,7 @@ export default function TeamPage() {
         <div className="md:hidden flex flex-col gap-3">
           {members.map((m) => (
             <div
-              key={m.email}
+              key={m.id}
               className="border border-border p-4 flex items-center justify-between"
             >
               <div className="flex items-center gap-3">
@@ -135,11 +169,62 @@ export default function TeamPage() {
                   <span className="text-xs text-gray">{m.email}</span>
                 </div>
               </div>
-              <span className="text-xs text-gray">{m.role}</span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-gray">{m.role}</span>
+                {m.role !== "Owner" && (
+                  <button
+                    onClick={() => handleRemoveClick(m)}
+                    disabled={removingId === m.id}
+                    className="text-[11px] text-brand font-medium hover:underline cursor-pointer bg-transparent border-none p-0"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
       </div>
+
+      {/* Remove Confirmation Modal */}
+      <Modal
+        open={showRemoveConfirm}
+        onClose={() => {
+          setShowRemoveConfirm(false);
+          setMemberToRemove(null);
+        }}
+        title="Remove Team Member"
+      >
+        <div className="flex flex-col gap-6">
+          <p className="text-[13px] text-gray leading-relaxed">
+            Are you sure you want to remove{" "}
+            <span className="font-medium text-dark">{memberToRemove?.name}</span> from
+            the team? They will lose access to all Bouncer resources.
+          </p>
+          <div className="flex items-center justify-end gap-3">
+            <button
+              onClick={() => {
+                setShowRemoveConfirm(false);
+                setMemberToRemove(null);
+              }}
+              className="border border-border text-dark font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer bg-white hover:bg-surface transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirmRemove}
+              disabled={removingId !== null}
+              className="bg-brand text-white font-heading text-[13px] font-medium px-5 py-2.5 cursor-pointer hover:bg-brand/90 transition-colors border-none disabled:opacity-60"
+            >
+              {removingId ? (
+                <span className="animate-pulse">Removing...</span>
+              ) : (
+                "Remove member"
+              )}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }
