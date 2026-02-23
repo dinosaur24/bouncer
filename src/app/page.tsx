@@ -149,7 +149,7 @@ function Hero() {
           <span className="hidden md:inline"> — all in under 800ms</span>.
         </p>
         <div className="flex flex-col md:flex-row md:items-center gap-3">
-          <ButtonCTA href="/dashboard" className="w-full md:w-auto">Start for free</ButtonCTA>
+          <ButtonCTA href="/signup" className="w-full md:w-auto">Start for free</ButtonCTA>
           <ButtonSecondary
             className="w-full md:w-auto"
             onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
@@ -551,9 +551,9 @@ function Pricing() {
               </div>
             </div>
             {tier.featured ? (
-              <ButtonCTA href="/dashboard" className="w-full">{tier.btnLabel}</ButtonCTA>
+              <ButtonCTA href="/signup" className="w-full">{tier.btnLabel}</ButtonCTA>
             ) : (
-              <ButtonSecondary href="/dashboard" className="w-full">
+              <ButtonSecondary href="/signup" className="w-full">
                 {tier.btnLabel}
               </ButtonSecondary>
             )}
@@ -617,7 +617,7 @@ function FinalCTA() {
         Start validating in under 5 minutes
         <span className="hidden md:inline">. Free</span>.
       </p>
-      <ButtonCTA href="/dashboard" className="w-full md:w-auto">Start for free</ButtonCTA>
+      <ButtonCTA href="/signup" className="w-full md:w-auto">Start for free</ButtonCTA>
       <p className="text-xs md:text-[13px] text-gray">
         No credit card required
         <span className="hidden md:inline"> · 250 free validations/mo</span>

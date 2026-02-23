@@ -43,8 +43,9 @@ const mobileBottomNav = [
 function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [dismissedBanner, setDismissedBanner] = useState(false);
   const { user } = useAuth();
-  const { usage, currentPlan } = useBilling();
+  const { usage, currentPlan, isNearLimit } = useBilling();
 
   const isNavActive = (href: string) =>
     href === "/dashboard"
@@ -224,8 +225,23 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto p-5 md:p-10 flex flex-col gap-8 md:gap-12 pb-20 md:pb-10">
-        {children}
+      <main className="flex-1 overflow-y-auto flex flex-col pb-20 md:pb-0">
+        {isNearLimit && !dismissedBanner && (
+          <div className="mx-4 mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center justify-between">
+            <p className="text-sm text-amber-800">
+              You&apos;ve used {usage.used.toLocaleString()} of {usage.limit.toLocaleString()} validations this month.
+            </p>
+            <div className="flex items-center gap-2">
+              <Link href="/dashboard/settings/billing" className="text-sm font-medium text-brand hover:underline">Upgrade</Link>
+              <button onClick={() => setDismissedBanner(true)} className="text-amber-400 hover:text-amber-600 cursor-pointer">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+        <div className="flex-1 p-5 md:p-10 flex flex-col gap-8 md:gap-12">
+          {children}
+        </div>
       </main>
 
       {/* Mobile bottom nav */}

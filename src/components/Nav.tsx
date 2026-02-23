@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navLinks = [
   { label: "How it works", href: "#how-it-works" },
@@ -16,6 +17,15 @@ const primaryButtonClasses =
 
 export function Nav() {
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // AuthProvider wraps the entire app in root layout, so this should always work
+  const { user, isAuthenticated, logout } = useAuth();
+
+  const userInitial = user?.firstName
+    ? user.firstName[0].toUpperCase()
+    : user?.email
+      ? user.email[0].toUpperCase()
+      : "U";
 
   return (
     <nav className="border-b border-border">
@@ -43,15 +53,42 @@ export function Nav() {
 
         {/* Desktop right */}
         <div className="hidden md:flex items-center gap-4">
-          <Link
-            href="/login"
-            className="font-heading text-sm text-gray hover:text-dark transition-colors"
-          >
-            Login
-          </Link>
-          <Link href="/signup" className={primaryButtonClasses}>
-            Start for free
-          </Link>
+          {isAuthenticated ? (
+            <>
+              <Link
+                href="/dashboard"
+                className="font-heading text-sm text-gray hover:text-dark transition-colors"
+              >
+                Dashboard
+              </Link>
+              <button
+                onClick={logout}
+                className="font-heading text-sm text-gray hover:text-dark transition-colors cursor-pointer"
+              >
+                Log out
+              </button>
+              <Link
+                href="/dashboard"
+                className="w-8 h-8 bg-dark flex items-center justify-center"
+              >
+                <span className="text-white font-heading text-[13px] font-medium">
+                  {userInitial}
+                </span>
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="font-heading text-sm text-gray hover:text-dark transition-colors"
+              >
+                Login
+              </Link>
+              <Link href="/signup" className={primaryButtonClasses}>
+                Start for free
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile hamburger */}
@@ -81,18 +118,40 @@ export function Nav() {
             </Link>
           ))}
           <div className="border-t border-border pt-4 flex flex-col gap-3">
-            <Link
-              href="/login"
-              className="font-heading text-sm text-gray hover:text-dark transition-colors"
-            >
-              Login
-            </Link>
-            <Link
-              href="/signup"
-              className={`${primaryButtonClasses} w-full`}
-            >
-              Start for free
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="font-heading text-sm text-gray hover:text-dark transition-colors"
+                >
+                  Dashboard
+                </Link>
+                <button
+                  onClick={() => {
+                    logout();
+                    setMenuOpen(false);
+                  }}
+                  className="font-heading text-sm text-gray hover:text-dark transition-colors text-left cursor-pointer"
+                >
+                  Log out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="font-heading text-sm text-gray hover:text-dark transition-colors"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/signup"
+                  className={`${primaryButtonClasses} w-full`}
+                >
+                  Start for free
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}
