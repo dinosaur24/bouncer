@@ -52,9 +52,9 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       ? pathname === "/dashboard"
       : pathname.startsWith(href);
 
-  const displayName = user?.name || user?.email || 'User';
-  const initials = user?.name
-    ? user.name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase()
+  const displayName = user?.full_name || user?.email || 'User';
+  const initials = user?.full_name
+    ? user.full_name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase()
     : user?.email ? user.email[0].toUpperCase() : 'U';
   const planLabel = user?.plan ? user.plan.charAt(0).toUpperCase() + user.plan.slice(1) + ' Plan' : 'Free Plan';
 

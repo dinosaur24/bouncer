@@ -12,7 +12,7 @@ export async function POST() {
   const { data: user } = await supabase
     .from('users')
     .select('email')
-    .eq('clerk_id', userId)
+    .eq('clerk_user_id', userId)
     .single();
 
   try {

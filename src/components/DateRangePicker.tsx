@@ -26,6 +26,10 @@ interface DateRangePickerProps {
   initialEnd?: Date | null;
 }
 
+const CELL = 40;
+const COLS = 7;
+const GRID_W = CELL * COLS;
+
 function MonthGrid({
   month,
   startDate,
@@ -49,21 +53,41 @@ function MonthGrid({
   const weekdays = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
   const rangeEnd = endDate || hoverDate;
-  const rangeStart = startDate && rangeEnd
-    ? isBefore(startDate, rangeEnd) ? startDate : rangeEnd
-    : null;
-  const rangeFinal = startDate && rangeEnd
-    ? isAfter(startDate, rangeEnd) ? startDate : rangeEnd
-    : null;
+  const rangeStart =
+    startDate && rangeEnd
+      ? isBefore(startDate, rangeEnd)
+        ? startDate
+        : rangeEnd
+      : null;
+  const rangeFinal =
+    startDate && rangeEnd
+      ? isAfter(startDate, rangeEnd)
+        ? startDate
+        : rangeEnd
+      : null;
 
   return (
-    <div className="flex flex-col gap-2">
+    <div style={{ width: GRID_W }}>
       {/* Weekday headers */}
-      <div className="grid grid-cols-7 gap-0.5">
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: `repeat(7, ${CELL}px)`,
+          marginBottom: 4,
+        }}
+      >
         {weekdays.map((wd) => (
           <div
             key={wd}
-            className="w-9 h-7 flex items-center justify-center text-[11px] text-light-gray font-medium uppercase"
+            style={{
+              height: 32,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 11,
+              fontWeight: 500,
+              color: "#9B9B9B",
+            }}
           >
             {wd}
           </div>
@@ -71,7 +95,12 @@ function MonthGrid({
       </div>
 
       {/* Day grid */}
-      <div className="grid grid-cols-7 gap-0.5">
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: `repeat(7, ${CELL}px)`,
+        }}
+      >
         {days.map((day) => {
           const inMonth = isSameMonth(day, month);
           const isStart = startDate && isSameDay(day, startDate);
@@ -87,6 +116,25 @@ function MonthGrid({
 
           const isToday = isSameDay(day, new Date());
 
+          let bg = "transparent";
+          let color = "#1A1A1A";
+          let fontWeight = 400;
+          let borderRadius = 8;
+
+          if (!inMonth) {
+            color = "rgba(229,229,229,0.6)";
+          } else if (isSelected) {
+            bg = "#1A1A1A";
+            color = "#fff";
+            fontWeight = 600;
+          } else if (inRange) {
+            bg = "rgba(79,70,229,0.06)";
+            borderRadius = 0;
+          } else if (isToday) {
+            color = "#4F46E5";
+            fontWeight = 600;
+          }
+
           return (
             <button
               key={day.toISOString()}
@@ -94,15 +142,33 @@ function MonthGrid({
               onClick={() => inMonth && onSelect(day)}
               onMouseEnter={() => inMonth && onHover(day)}
               onMouseLeave={() => onHover(null)}
-              className={`
-                w-9 h-9 flex items-center justify-center text-xs rounded-lg transition-colors
-                ${!inMonth ? "text-border cursor-default" : "cursor-pointer"}
-                ${isSelected ? "bg-dark text-white font-semibold" : ""}
-                ${inRange && inMonth ? "bg-surface" : ""}
-                ${!isSelected && !inRange && inMonth ? "hover:bg-surface text-dark" : ""}
-                ${isToday && !isSelected ? "ring-1 ring-brand/30 font-semibold" : ""}
-              `}
               disabled={!inMonth}
+              style={{
+                width: CELL,
+                height: CELL,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 13,
+                fontWeight,
+                color,
+                backgroundColor: bg,
+                borderRadius,
+                border: "none",
+                cursor: inMonth ? "pointer" : "default",
+                transition: "background-color 0.15s",
+                outline: "none",
+              }}
+              onMouseOver={(e) => {
+                if (inMonth && !isSelected && !inRange) {
+                  e.currentTarget.style.backgroundColor = "#F8F8F8";
+                }
+              }}
+              onMouseOut={(e) => {
+                if (inMonth && !isSelected && !inRange) {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }
+              }}
             >
               {format(day, "d")}
             </button>
@@ -130,7 +196,6 @@ export function DateRangePicker({
 
   const rightMonth = addMonths(leftMonth, 1);
 
-  // Reset state when popover opens
   useEffect(() => {
     if (open) {
       setStartDate(initialStart ?? null);
@@ -141,7 +206,6 @@ export function DateRangePicker({
     }
   }, [open, initialStart, initialEnd]);
 
-  // Outside click
   useEffect(() => {
     if (!open) return;
     function handleMouseDown(e: MouseEvent) {
@@ -153,7 +217,6 @@ export function DateRangePicker({
     return () => document.removeEventListener("mousedown", handleMouseDown);
   }, [open, onClose]);
 
-  // Escape key
   useEffect(() => {
     if (!open) return;
     function handleKeyDown(e: KeyboardEvent) {
@@ -166,11 +229,9 @@ export function DateRangePicker({
   const handleSelect = useCallback(
     (day: Date) => {
       if (!startDate || (startDate && endDate)) {
-        // First click or restart
         setStartDate(day);
         setEndDate(null);
       } else {
-        // Second click — set range
         if (isBefore(day, startDate)) {
           setEndDate(startDate);
           setStartDate(day);
@@ -193,25 +254,63 @@ export function DateRangePicker({
   return (
     <div
       ref={ref}
-      className="absolute top-full right-0 mt-2 bg-white border border-border rounded-lg shadow-lg z-40 p-5 animate-[scaleIn_0.15s_ease-out]"
-      style={{ transformOrigin: "top right" }}
+      style={{
+        position: "absolute",
+        top: "100%",
+        right: 0,
+        marginTop: 8,
+        backgroundColor: "#fff",
+        border: "1px solid #E5E5E5",
+        borderRadius: 12,
+        boxShadow: "0 8px 30px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)",
+        padding: 24,
+        zIndex: 50,
+        animation: "scaleIn 0.15s ease-out",
+        transformOrigin: "top right",
+      }}
     >
       {/* Two-month layout */}
-      <div className="flex gap-8">
+      <div style={{ display: "flex", gap: 32 }}>
         {/* Left month */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
+        <div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 16,
+              width: GRID_W,
+            }}
+          >
             <button
               type="button"
               onClick={() => setLeftMonth(subMonths(leftMonth, 1))}
-              className="w-7 h-7 flex items-center justify-center rounded-lg text-gray hover:text-dark hover:bg-surface transition-colors cursor-pointer"
+              style={{
+                width: 32,
+                height: 32,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 8,
+                border: "none",
+                background: "transparent",
+                color: "#6B6B6B",
+                cursor: "pointer",
+              }}
             >
               <ChevronLeft size={16} />
             </button>
-            <span className="font-heading text-[13px] font-semibold text-dark">
+            <span
+              style={{
+                fontFamily: "var(--font-heading)",
+                fontSize: 14,
+                fontWeight: 600,
+                color: "#1A1A1A",
+              }}
+            >
               {format(leftMonth, "MMMM yyyy")}
             </span>
-            <div className="w-7" />
+            <div style={{ width: 32 }} />
           </div>
           <MonthGrid
             month={leftMonth}
@@ -223,17 +322,46 @@ export function DateRangePicker({
           />
         </div>
 
+        {/* Divider */}
+        <div style={{ width: 1, backgroundColor: "#E5E5E5" }} />
+
         {/* Right month */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <div className="w-7" />
-            <span className="font-heading text-[13px] font-semibold text-dark">
+        <div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 16,
+              width: GRID_W,
+            }}
+          >
+            <div style={{ width: 32 }} />
+            <span
+              style={{
+                fontFamily: "var(--font-heading)",
+                fontSize: 14,
+                fontWeight: 600,
+                color: "#1A1A1A",
+              }}
+            >
               {format(rightMonth, "MMMM yyyy")}
             </span>
             <button
               type="button"
               onClick={() => setLeftMonth(addMonths(leftMonth, 1))}
-              className="w-7 h-7 flex items-center justify-center rounded-lg text-gray hover:text-dark hover:bg-surface transition-colors cursor-pointer"
+              style={{
+                width: 32,
+                height: 32,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 8,
+                border: "none",
+                background: "transparent",
+                color: "#6B6B6B",
+                cursor: "pointer",
+              }}
             >
               <ChevronRight size={16} />
             </button>
@@ -249,20 +377,39 @@ export function DateRangePicker({
         </div>
       </div>
 
-      {/* Selection summary + actions */}
-      <div className="flex items-center justify-between mt-5 pt-4 border-t border-border">
-        <span className="text-[13px] text-gray">
+      {/* Footer */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginTop: 20,
+          paddingTop: 16,
+          borderTop: "1px solid #E5E5E5",
+        }}
+      >
+        <span style={{ fontSize: 13, color: "#6B6B6B" }}>
           {startDate && endDate
             ? `${format(startDate, "MMM d, yyyy")} – ${format(endDate, "MMM d, yyyy")}`
             : startDate
               ? `${format(startDate, "MMM d, yyyy")} – select end date`
               : "Select a date range"}
         </span>
-        <div className="flex items-center gap-2">
+        <div style={{ display: "flex", gap: 10 }}>
           <button
             type="button"
             onClick={onClose}
-            className="border border-border rounded-lg text-dark font-heading text-[13px] font-medium px-4 py-2 cursor-pointer hover:bg-surface transition-colors"
+            className="font-heading"
+            style={{
+              fontSize: 13,
+              fontWeight: 500,
+              padding: "8px 20px",
+              borderRadius: 8,
+              border: "1px solid #E5E5E5",
+              background: "#fff",
+              color: "#1A1A1A",
+              cursor: "pointer",
+            }}
           >
             Cancel
           </button>
@@ -270,7 +417,18 @@ export function DateRangePicker({
             type="button"
             onClick={handleApply}
             disabled={!startDate || !endDate}
-            className="bg-dark text-white font-heading text-[13px] font-medium px-4 py-2 rounded-lg cursor-pointer hover:bg-dark/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="font-heading"
+            style={{
+              fontSize: 13,
+              fontWeight: 500,
+              padding: "8px 20px",
+              borderRadius: 8,
+              border: "none",
+              background: !startDate || !endDate ? "#ccc" : "#1A1A1A",
+              color: "#fff",
+              cursor: !startDate || !endDate ? "not-allowed" : "pointer",
+              opacity: !startDate || !endDate ? 0.5 : 1,
+            }}
           >
             Apply
           </button>

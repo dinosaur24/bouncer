@@ -33,5 +33,20 @@ export async function GET(req: Request) {
   const { data, error, count } = await query;
 
   if (error) return errorResponse('Failed to fetch validations', 500);
-  return jsonResponse(data ?? []);
+
+  const mapped = (data ?? []).map(v => ({
+    id: v.id,
+    email: v.email,
+    score: v.score,
+    status: v.status,
+    signals: v.signals ?? [],
+    source: v.source ?? 'API',
+    timestamp: v.created_at,
+    ip: v.ip ?? '',
+    phone: v.phone ?? '',
+    company: v.company ?? '',
+    overridden: v.overridden ?? false,
+  }));
+
+  return jsonResponse(mapped);
 }

@@ -14,7 +14,7 @@ export async function PATCH(req: Request) {
   const body = await req.json();
 
   const allowedFields = [
-    'name', 'company_name', 'company_website', 'team_size',
+    'full_name', 'company_name', 'company_website', 'team_size',
     'scoring_thresholds', 'notification_prefs', 'webhook_config', 'plan',
   ];
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };

@@ -6,9 +6,9 @@ import type { PlanTier } from '@/lib/types';
 
 export interface BouncerUser {
   id: string;
-  clerk_id: string;
+  clerk_user_id: string;
   email: string;
-  name: string | null;
+  full_name: string | null;
   avatar_url: string | null;
   company_name: string | null;
   company_website: string | null;

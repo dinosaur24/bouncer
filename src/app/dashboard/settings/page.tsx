@@ -14,7 +14,7 @@ export default function SettingsPage() {
   const router = useRouter();
 
   const [form, setForm] = useState({
-    name: user?.name || "",
+    name: user?.full_name || "",
     email: user?.email || "",
     company_name: user?.company_name || "",
   });
@@ -34,7 +34,7 @@ export default function SettingsPage() {
 
   const handleCancel = () => {
     setForm({
-      name: user?.name || "",
+      name: user?.full_name || "",
       email: user?.email || "",
       company_name: user?.company_name || "",
     });

@@ -65,7 +65,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       const res = await fetch('/api/user', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: data.name, company_name: data.company_name }),
+        body: JSON.stringify({ full_name: data.name, company_name: data.company_name }),
       });
       if (res.ok) await refreshUser();
     } finally {

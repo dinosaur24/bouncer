@@ -9,7 +9,7 @@ export async function getCurrentUser() {
   const { data } = await supabase
     .from('users')
     .select('*')
-    .eq('clerk_id', userId)
+    .eq('clerk_user_id', userId)
     .single();
 
   if (data) return data;
@@ -22,9 +22,9 @@ export async function getCurrentUser() {
   const { data: newUser, error } = await supabase
     .from('users')
     .insert({
-      clerk_id: userId,
+      clerk_user_id: userId,
       email: clerkUser.emailAddresses[0]?.emailAddress ?? '',
-      name,
+      full_name: name,
       avatar_url: clerkUser.imageUrl ?? null,
     })
     .select()

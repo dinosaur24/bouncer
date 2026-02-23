@@ -42,12 +42,12 @@ export async function POST(req: Request) {
     const { error } = await supabase
       .from('users')
       .upsert({
-        clerk_id: id,
+        clerk_user_id: id,
         email: email,
-        name: name,
+        full_name: name,
         avatar_url: image_url,
         updated_at: new Date().toISOString(),
-      }, { onConflict: 'clerk_id' });
+      }, { onConflict: 'clerk_user_id' });
 
     if (error) {
       console.error('Supabase upsert error:', error);
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     const { error } = await supabase
       .from('users')
       .delete()
-      .eq('clerk_id', id);
+      .eq('clerk_user_id', id);
 
     if (error) {
       console.error('Supabase delete error:', error);
