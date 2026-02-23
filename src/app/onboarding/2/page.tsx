@@ -4,52 +4,20 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Copy, CheckCircle, Loader2 } from "lucide-react";
 import { useOnboarding } from "@/contexts/OnboardingContext";
-
-const snippets = {
-  html: `<script
-  src="https://cdn.bouncer.io/snippet.js"
-  data-token="bnc_sk_abc0ef"
-  data-config="auto_validate"
-  async>
-</script>`,
-  react: `import { useEffect } from "react";
-
-function App() {
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://cdn.bouncer.io/snippet.js";
-    script.dataset.token = "bnc_sk_abc0ef";
-    script.dataset.config = "auto_validate";
-    script.async = true;
-    document.head.appendChild(script);
-    return () => { document.head.removeChild(script); };
-  }, []);
-}`,
-  nextjs: `// app/layout.tsx
-import Script from "next/script";
-
-export default function RootLayout({ children }) {
-  return (
-    <html>
-      <head>
-        <Script
-          src="https://cdn.bouncer.io/snippet.js"
-          data-token="bnc_sk_abc0ef"
-          data-config="auto_validate"
-          strategy="afterInteractive"
-        />
-      </head>
-      <body>{children}</body>
-    </html>
-  );
-}`,
-};
+import { getHtmlSnippet, getReactSnippet, getNextSnippet, getFormKeyOrPlaceholder } from "@/lib/snippets";
 
 type Tab = "html" | "react" | "nextjs";
 
 export default function InstallSnippetPage() {
   const [activeTab, setActiveTab] = useState<Tab>("html");
   const [copied, setCopied] = useState(false);
+
+  const formKey = getFormKeyOrPlaceholder();
+  const snippets = {
+    html: getHtmlSnippet(formKey),
+    react: getReactSnippet(formKey),
+    nextjs: getNextSnippet(formKey),
+  };
 
   const { verifySnippet, state, isLoading, completeStep } = useOnboarding();
   const [verified, setVerified] = useState(state.snippetVerified);
