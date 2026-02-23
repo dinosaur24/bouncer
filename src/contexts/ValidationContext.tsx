@@ -10,11 +10,19 @@ interface ValidationFilters {
   source?: string;
 }
 
+export type DateFilter =
+  | { type: 'preset'; days: number }
+  | { type: 'custom'; startDate: string; endDate: string };
+
 interface ValidationContextType {
   validations: Validation[];
   stats: DashboardStats;
   chartData: ChartDataPoint[];
   isLoading: boolean;
+  days: number;
+  setDays: (days: number) => void;
+  dateFilter: DateFilter;
+  setCustomDateRange: (start: Date, end: Date) => void;
   fetchValidations: (filters?: ValidationFilters) => Promise<Validation[]>;
   getValidation: (id: string) => Validation | undefined;
   overrideValidation: (id: string) => Promise<void>;
@@ -31,26 +39,51 @@ export function useValidations() {
   return context;
 }
 
+const defaultStats: DashboardStats = {
+  totalValidations: 0, passRate: 0, avgScore: 0, rejected: 0,
+  totalChange: 0, passRateChange: 0, avgScoreChange: 0, rejectedChange: 0,
+};
+
 export function ValidationProvider({ children }: { children: ReactNode }) {
   const [validations, setValidations] = useState<Validation[]>([]);
-  const [stats, setStats] = useState<DashboardStats>({
-    validationsToday: 0, validationsMonth: 0, passRate: 0, avgScore: 0,
-    todayChange: 0, monthChange: 0, passRateChange: 0, avgScoreChange: 0,
-  });
+  const [stats, setStats] = useState<DashboardStats>(defaultStats);
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [dateFilter, setDateFilter] = useState<DateFilter>({ type: 'preset', days: 30 });
+
+  const days = dateFilter.type === 'preset' ? dateFilter.days : 0;
+  const setDays = useCallback((d: number) => {
+    setDateFilter({ type: 'preset', days: d });
+  }, []);
+  const setCustomDateRange = useCallback((start: Date, end: Date) => {
+    setDateFilter({
+      type: 'custom',
+      startDate: start.toISOString().split('T')[0],
+      endDate: end.toISOString().split('T')[0],
+    });
+  }, []);
 
   useEffect(() => {
     async function loadData() {
+      setIsLoading(true);
       try {
-        const [validationsRes, statsRes, chartRes] = await Promise.all([
+        const statsParams = dateFilter.type === 'preset'
+          ? `days=${dateFilter.days}`
+          : `start=${dateFilter.startDate}&end=${dateFilter.endDate}`;
+        const chartParams = dateFilter.type === 'preset'
+          ? 'days=7'
+          : `start=${dateFilter.startDate}&end=${dateFilter.endDate}`;
+
+        const [validationsRes, statsRes, chartRes, reasonsRes] = await Promise.all([
           fetch('/api/validations'),
-          fetch('/api/validations/stats'),
-          fetch('/api/validations/chart?days=7'),
+          fetch(`/api/validations/stats?${statsParams}`),
+          fetch(`/api/validations/chart?${chartParams}`),
+          fetch('/api/validations/rejection-reasons'),
         ]);
         if (validationsRes.ok) setValidations(await validationsRes.json());
         if (statsRes.ok) setStats(await statsRes.json());
         if (chartRes.ok) setChartData(await chartRes.json());
+        if (reasonsRes.ok) setRejectionReasons(await reasonsRes.json());
       } catch {
         // silently fail — user may not be authenticated yet
       } finally {
@@ -58,7 +91,7 @@ export function ValidationProvider({ children }: { children: ReactNode }) {
       }
     }
     loadData();
-  }, []);
+  }, [dateFilter]);
 
   const fetchValidations = useCallback(async (filters?: ValidationFilters) => {
     setIsLoading(true);
@@ -124,17 +157,11 @@ export function ValidationProvider({ children }: { children: ReactNode }) {
   // No-op in production — was used for mock data simulation
   const addValidation = useCallback(() => {}, []);
 
-  const rejectionReasons = [
-    { label: 'Disposable email detected', percentage: 34 },
-    { label: 'Invalid phone number', percentage: 26 },
-    { label: 'VPN/Proxy IP detected', percentage: 19 },
-    { label: 'Domain not found', percentage: 13 },
-    { label: 'Multiple signals failed', percentage: 8 },
-  ];
+  const [rejectionReasons, setRejectionReasons] = useState<{ label: string; percentage: number }[]>([]);
 
   return (
     <ValidationContext.Provider value={{
-      validations, stats, chartData, isLoading,
+      validations, stats, chartData, isLoading, days, setDays, dateFilter, setCustomDateRange,
       fetchValidations, getValidation, overrideValidation, exportCSV, addValidation,
       rejectionReasons,
     }}>

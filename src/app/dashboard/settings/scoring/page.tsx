@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useToast } from "@/components/Toast";
 import { useSettings } from "@/contexts/SettingsContext";
 
@@ -13,16 +13,38 @@ export default function ScoringPage() {
   const [blockRejected, setBlockRejected] = useState(scoring.blockRejected);
   const [rejectionMessage, setRejectionMessage] = useState(scoring.rejectionMessage);
 
+  const [scores, setScores] = useState<number[]>([]);
+
+  useEffect(() => {
+    fetch("/api/validations/scores")
+      .then((r) => r.ok ? r.json() : [])
+      .then(setScores)
+      .catch(() => {});
+  }, []);
+
+  const preview = useMemo(() => {
+    const total = scores.length;
+    if (total === 0) {
+      return [
+        { label: "Passed", value: "—", color: "#22C55E", bg: "bg-green/5" },
+        { label: "Borderline", value: "—", color: "#F59E0B", bg: "bg-[#FEF3C7]" },
+        { label: "Rejected", value: "—", color: "#E42313", bg: "bg-[#FEE2E2]" },
+      ];
+    }
+    const passed = scores.filter((s) => s >= passedMin).length;
+    const borderline = scores.filter((s) => s >= borderlineMin && s < passedMin).length;
+    const rejected = total - passed - borderline;
+    return [
+      { label: "Passed", value: `${Math.round((passed / total) * 100)}`, color: "#22C55E", bg: "bg-green/5" },
+      { label: "Borderline", value: `${Math.round((borderline / total) * 100)}`, color: "#F59E0B", bg: "bg-[#FEF3C7]" },
+      { label: "Rejected", value: `${Math.round((rejected / total) * 100)}`, color: "#E42313", bg: "bg-[#FEE2E2]" },
+    ];
+  }, [scores, passedMin, borderlineMin]);
+
   const sliderBg = (color: string, value: number, min: number, max: number) => {
     const pct = ((value - min) / (max - min)) * 100;
     return `linear-gradient(to right, ${color} ${pct}%, #E5E5E5 ${pct}%)`;
   };
-
-  const preview = [
-    { label: "Passed", value: "62", color: "#22C55E", bg: "bg-green/5" },
-    { label: "Borderline", value: "24", color: "#F59E0B", bg: "bg-[#FEF3C7]" },
-    { label: "Rejected", value: "14", color: "#E42313", bg: "bg-[#FEE2E2]" },
-  ];
 
   const handleSave = async () => {
     try {
@@ -137,19 +159,19 @@ export default function ScoringPage() {
       {/* Live Preview */}
       <div className="flex flex-col gap-4">
         <h3 className="font-heading text-[15px] font-semibold text-dark">
-          Live preview — Last 100 validations
+          Live preview — Last {scores.length || 100} validations
         </h3>
         <div className="grid grid-cols-3 gap-3 md:gap-4">
           {preview.map((p) => (
             <div
               key={p.label}
-              className={`${p.bg} p-4 md:p-5 flex flex-col items-center gap-1`}
+              className={`${p.bg} p-4 md:p-5 flex flex-col items-center gap-1 rounded-lg`}
             >
               <span
                 className="font-heading text-[24px] md:text-[28px] font-bold"
                 style={{ color: p.color }}
               >
-                {p.value}%
+                {p.value === "—" ? "—" : `${p.value}%`}
               </span>
               <span className="text-xs text-gray">{p.label}</span>
             </div>

@@ -8,6 +8,7 @@ import {
   ValidationDrawer,
   type ValidationDetail,
 } from "@/components/ValidationDrawer";
+import { DateFilter } from "@/components/DateFilter";
 import { useValidations } from "@/contexts/ValidationContext";
 import type { Validation, SignalResult } from "@/lib/types";
 
@@ -65,7 +66,6 @@ const statusColors: Record<string, { dot: string; scoreBg: string; scoreColor: s
 export default function DashboardPage() {
   const { stats, chartData, validations, isLoading, overrideValidation, exportCSV } = useValidations();
   const { addToast } = useToast();
-  const [activeDateRange, setActiveDateRange] = useState("Last 30 days");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedValidation, setSelectedValidation] =
     useState<ValidationDetail | null>(null);
@@ -91,11 +91,12 @@ export default function DashboardPage() {
     }
   }, [recentValidations]);
 
+  const fmt = (n: number) => `${n > 0 ? '+' : ''}${n}%`;
   const metrics = [
-    { label: 'Validations today', value: stats.validationsToday.toLocaleString(), change: `${stats.todayChange > 0 ? '+' : ''}${stats.todayChange}%` },
-    { label: 'This month', value: stats.validationsMonth.toLocaleString(), change: `${stats.monthChange > 0 ? '+' : ''}${stats.monthChange}%` },
-    { label: 'Pass rate', value: `${stats.passRate}%`, change: `${stats.passRateChange > 0 ? '+' : ''}${stats.passRateChange}%` },
-    { label: 'Avg. score', value: stats.avgScore.toString(), change: `${stats.avgScoreChange > 0 ? '+' : ''}${stats.avgScoreChange}%` },
+    { label: 'Total validations', value: stats.totalValidations.toLocaleString(), change: fmt(stats.totalChange) },
+    { label: 'Pass rate', value: `${stats.passRate}%`, change: fmt(stats.passRateChange) },
+    { label: 'Avg. score', value: stats.avgScore.toString(), change: fmt(stats.avgScoreChange) },
+    { label: 'Rejected', value: stats.rejected.toLocaleString(), change: fmt(stats.rejectedChange) },
   ];
 
   const maxTotal = Math.max(
@@ -103,7 +104,6 @@ export default function DashboardPage() {
     1
   );
 
-  const dateRanges = ["Last 30 days", "Last 7 days", "Custom"];
 
   const handleOverride = async (email: string) => {
     if (selectedId) {
@@ -138,22 +138,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
-          {/* Date picker */}
-          <div className="flex border border-border rounded-lg overflow-hidden">
-            {dateRanges.map((range) => (
-              <button
-                key={range}
-                onClick={() => setActiveDateRange(range)}
-                className={`px-4 py-2.5 text-xs font-medium cursor-pointer transition-colors ${
-                  activeDateRange === range
-                    ? "bg-dark text-white"
-                    : "bg-white text-gray hover:bg-surface"
-                }`}
-              >
-                {range}
-              </button>
-            ))}
-          </div>
+          <DateFilter />
 
           {/* Export button */}
           <button
@@ -270,7 +255,7 @@ export default function DashboardPage() {
 
                 return (
                   <div
-                    key={bar.day}
+                    key={bar.date}
                     className="flex-1 flex flex-col items-center gap-3"
                   >
                     <div

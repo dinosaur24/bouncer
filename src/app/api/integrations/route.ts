@@ -28,6 +28,7 @@ export async function POST(req: Request) {
       name: body.name,
       status: 'connected',
       field_mappings: body.field_mappings || [],
+      nango_connection_id: body.nango_connection_id || null,
       connected_at: new Date().toISOString(),
     })
     .select()

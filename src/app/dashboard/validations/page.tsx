@@ -4,11 +4,9 @@ import { useState, useRef, useEffect } from "react";
 import { Search, Mail, Phone, Globe, Building2, Download, Filter } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { ValidationDrawer, type ValidationDetail } from "@/components/ValidationDrawer";
+import { DateFilter } from "@/components/DateFilter";
 import { useValidations } from "@/contexts/ValidationContext";
 import type { Validation, SignalResult, ValidationStatus } from "@/lib/types";
-
-const dateRanges = ["Last 30 days", "Last 7 days", "Custom"] as const;
-type DateRange = (typeof dateRanges)[number];
 
 const signalIconMap: Record<string, typeof Mail> = {
   email: Mail,
@@ -102,8 +100,6 @@ const statusOptions: (ValidationStatus | "All")[] = ["All", "Passed", "Borderlin
 const ITEMS_PER_PAGE = 10;
 
 export default function ValidationsPage() {
-  const [activeDateRange, setActiveDateRange] =
-    useState<DateRange>("Last 30 days");
   const [activePage, setActivePage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ValidationStatus | "All">("All");
@@ -181,22 +177,7 @@ export default function ValidationsPage() {
 
         {/* Right */}
         <div className="flex items-center gap-3 flex-wrap">
-          {/* Date picker */}
-          <div className="flex border border-border rounded-lg overflow-hidden">
-            {dateRanges.map((range) => (
-              <button
-                key={range}
-                onClick={() => setActiveDateRange(range)}
-                className={`px-4 py-2.5 text-xs font-medium cursor-pointer transition-colors ${
-                  activeDateRange === range
-                    ? "bg-dark text-white"
-                    : "bg-white text-gray hover:bg-surface"
-                }`}
-              >
-                {range}
-              </button>
-            ))}
-          </div>
+          <DateFilter />
 
           {/* Search box */}
           <div className="relative flex items-center border border-border rounded-lg px-4 py-2.5 w-[260px]">

@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import type { CompanyProfile, OnboardingState, ScoringThresholds } from '@/lib/types';
+import { OAUTH_PROVIDERS, connectOAuthProvider } from '@/lib/nango-connect';
 
 const DEFAULT_THRESHOLDS: ScoringThresholds = {
   passedMin: 70,
@@ -94,16 +95,20 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const connectCRM = useCallback(async (provider: string) => {
     setIsLoading(true);
     try {
-      await fetch('/api/integrations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ provider, name: provider, field_mappings: [] }),
-      });
+      if (OAUTH_PROVIDERS.includes(provider) && user?.id) {
+        await connectOAuthProvider(provider, user.id, []);
+      } else {
+        await fetch('/api/integrations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ provider, name: provider, field_mappings: [] }),
+        });
+      }
       completeStep(3);
     } finally {
       setIsLoading(false);
     }
-  }, [completeStep]);
+  }, [completeStep, user?.id]);
 
   const skipCRM = useCallback(() => {
     completeStep(3);

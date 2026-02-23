@@ -10,7 +10,10 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.38.1",
+    "@nangohq/frontend": "^0.69.36",
+    "@nangohq/node": "^0.69.36",
     "@supabase/supabase-js": "^2.97.0",
+    "date-fns": "^4.1.0",
     "lucide-react": "^0.575.0",
     "next": "^15.5.12",
     "react": "19.2.3",

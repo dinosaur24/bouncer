@@ -1,11 +1,12 @@
 "use client";
 
 import { useValidations } from "@/contexts/ValidationContext";
+import { DateFilter } from "@/components/DateFilter";
 
 export default function AnalyticsPage() {
   const { stats, chartData, rejectionReasons, validations } = useValidations();
 
-  const totalValidated = stats.validationsMonth;
+  const totalValidated = stats.totalValidations;
   const passed = validations.filter(v => v.status === 'Passed').length;
   const borderline = validations.filter(v => v.status === 'Borderline').length;
   const rejected = validations.filter(v => v.status === 'Rejected').length;
@@ -33,17 +34,7 @@ export default function AnalyticsPage() {
           </p>
         </div>
 
-        <div className="flex border border-border rounded-lg overflow-hidden">
-          <button className="px-4 py-2.5 text-xs font-medium cursor-pointer transition-colors bg-dark text-white">
-            Last 30 days
-          </button>
-          <button className="px-4 py-2.5 text-xs font-medium cursor-pointer transition-colors bg-white text-gray hover:bg-surface">
-            Last 7 days
-          </button>
-          <button className="px-4 py-2.5 text-xs font-medium cursor-pointer transition-colors bg-white text-gray hover:bg-surface">
-            Custom
-          </button>
-        </div>
+        <DateFilter />
       </div>
 
       {/* Stats Row */}
@@ -56,7 +47,7 @@ export default function AnalyticsPage() {
           <div className="font-heading text-2xl font-bold mt-2 text-dark">
             {totalValidated.toLocaleString()}
           </div>
-          <span className="text-[11px] text-green">+{stats.monthChange}% vs prev. period</span>
+          <span className="text-[11px] text-green">+{stats.totalChange}% vs prev. period</span>
         </div>
 
         {/* Passed */}
@@ -138,7 +129,7 @@ export default function AnalyticsPage() {
 
               return (
                 <div
-                  key={bar.day}
+                  key={bar.date}
                   className="flex-1 flex flex-col items-center gap-3"
                 >
                   <div

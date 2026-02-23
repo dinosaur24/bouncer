@@ -62,17 +62,18 @@ export interface Validation {
 }
 
 export interface DashboardStats {
-  validationsToday: number;
-  validationsMonth: number;
+  totalValidations: number;
   passRate: number;
   avgScore: number;
-  todayChange: number;
-  monthChange: number;
+  rejected: number;
+  totalChange: number;
   passRateChange: number;
   avgScoreChange: number;
+  rejectedChange: number;
 }
 
 export interface ChartDataPoint {
+  date: string;
   day: string;
   passed: number;
   borderline: number;
@@ -113,6 +114,7 @@ export interface CRMConnection {
   status: 'connected' | 'disconnected' | 'error';
   connectedAt?: string;
   lastSyncAt?: string;
+  nangoConnectionId?: string;
 }
 
 export interface FieldMapping {

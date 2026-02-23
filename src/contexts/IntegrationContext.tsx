@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { CRMConnection, FieldMapping } from '@/lib/types';
+import { useAuth } from './AuthContext';
+import { OAUTH_PROVIDERS, connectOAuthProvider, PROVIDER_NAMES } from '@/lib/nango-connect';
 
 const DEFAULT_MAPPINGS: FieldMapping[] = [
   { bouncerField: 'Email', crmField: 'email', enabled: true },
@@ -30,6 +32,7 @@ export function useIntegrations() {
 }
 
 export function IntegrationProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [connections, setConnections] = useState<CRMConnection[]>([]);
   const [fieldMappings, setFieldMappings] = useState<FieldMapping[]>(DEFAULT_MAPPINGS);
   const [isLoading, setIsLoading] = useState(false);
@@ -64,7 +67,34 @@ export function IntegrationProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const existing = connections.find(c => c.provider === provider);
-      if (existing) {
+
+      if (OAUTH_PROVIDERS.includes(provider) && user?.id) {
+        // OAuth providers: open Nango popup
+        const data = await connectOAuthProvider(
+          provider,
+          user.id,
+          fieldMappings,
+          existing?.id,
+        ) as Record<string, unknown>;
+
+        if (existing) {
+          setConnections(prev => prev.map(c =>
+            c.id === existing.id
+              ? { ...c, status: 'connected' as const, connectedAt: data.connected_at as string }
+              : c
+          ));
+        } else {
+          setConnections(prev => [...prev, {
+            id: data.id as string,
+            provider: data.provider as CRMConnection['provider'],
+            name: data.name as string,
+            status: data.status as 'connected',
+            connectedAt: data.connected_at as string,
+            lastSyncAt: data.last_sync_at as string | undefined,
+          }]);
+        }
+      } else if (existing) {
+        // Non-OAuth: reconnect existing
         const res = await fetch(`/api/integrations/${existing.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -79,16 +109,13 @@ export function IntegrationProvider({ children }: { children: ReactNode }) {
           ));
         }
       } else {
-        const providerNames: Record<string, string> = {
-          hubspot: 'HubSpot', salesforce: 'Salesforce', pipedrive: 'Pipedrive',
-          webhook: 'Webhook', zapier: 'Zapier', slack: 'Slack',
-        };
+        // Non-OAuth: create new
         const res = await fetch('/api/integrations', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             provider,
-            name: providerNames[provider] || provider,
+            name: PROVIDER_NAMES[provider] || provider,
             field_mappings: fieldMappings,
           }),
         });
@@ -107,7 +134,7 @@ export function IntegrationProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [connections, fieldMappings]);
+  }, [connections, fieldMappings, user?.id]);
 
   const disconnectCRM = useCallback(async (id: string) => {
     setIsLoading(true);
@@ -144,10 +171,11 @@ export function IntegrationProvider({ children }: { children: ReactNode }) {
     }
   }, [connections]);
 
-  const testConnection = useCallback(async (_id: string) => {
-    // TODO: Add real connection testing endpoint
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    return true;
+  const testConnection = useCallback(async (id: string) => {
+    const res = await fetch(`/api/integrations/${id}/test`, { method: 'POST' });
+    if (!res.ok) return false;
+    const data = await res.json();
+    return data.healthy === true;
   }, []);
 
   return (

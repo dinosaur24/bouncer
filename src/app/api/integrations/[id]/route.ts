@@ -16,8 +16,9 @@ export async function PATCH(
     .update({
       ...(body.status !== undefined && { status: body.status }),
       ...(body.field_mappings !== undefined && { field_mappings: body.field_mappings }),
+      ...(body.nango_connection_id !== undefined && { nango_connection_id: body.nango_connection_id }),
       ...(body.status === 'connected' && { connected_at: new Date().toISOString() }),
-      ...(body.status === 'disconnected' && { connected_at: null, last_sync_at: null }),
+      ...(body.status === 'disconnected' && { connected_at: null, last_sync_at: null, nango_connection_id: null }),
     })
     .eq('id', id)
     .eq('user_id', user.id)
